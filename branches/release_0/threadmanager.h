@@ -17,58 +17,27 @@
  * */
 typedef struct _ThreadData
 {
+	Plugin*				tPlugin;
 	GQueue*				qMessages;
-	GQueue*				qThreads;
-	gint				created;
-	GError**			error;
+	GMutex*				mMessages;
+
 } ThreadData;
 
-/* Funcion threadInit
- * Precondiciones:
- * Postcondiciones:
- * Entrada:
- * Salida: Puntero a mensaje de error.
- * Proceso: Comprueba que el sistema soporta hilos.
- * */
 void
-threadInit						(gchar**);
+threadInit						(gchar*);
 
-/* Funcion createAllThreads
- * Precondiciones:
- * Postcondiciones:
- * Entrada: Cola con los complementos cargados en memoria, cola de mensajes.
- * Salida: Puntero a un mensaje de error, hilos creados.
- * Proceso: Inicia los hilos necesarios para cada uno de los complementos cargados.
- * */
+
 GQueue*
-createAllThreads					(GQueue*, GQueue*, gchar**);
+createAllThreads					(GQueue*, GQueue*, gchar*);
 
-/* Funcion createThread
- * Precondiciones:
- * Postcondiciones:
- * Entrada: Complemento cargado en memoria, cola de mensajes.
- * Salida: Puntero a un mensaje de error.
- * Proceso: Inicia los hilos necesarios para un complemento.
- * */
-void
-createThreads						(GQueue*, gchar**);
 
-/* Funcion destroyAllThreads
- * Precondiciones:
- * Postcondiciones:
- * Entrada:
- * Salida:
- * Proceso:
- * */
+GThread*
+createThread						(ThreadData*, gchar*);
+
+
 gint
-destroyAllThreads					(gchar**);
+destroyAllThreads					(gchar*);
 
-/* Funcion destroyThread
- * Precondiciones:
- * Postcondiciones:
- * Entrada:
- * Salida:
- * Proceso:
- * */
+
 void
-destroyThread						(gchar**);
+destroyThread						(gchar*);
