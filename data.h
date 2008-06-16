@@ -30,8 +30,6 @@ typedef struct _Plugin
 	void 			(*pluginReceive) 	(GQueue*);
 } Plugin;
 
-
-
 typedef struct _Message
 {
 	
