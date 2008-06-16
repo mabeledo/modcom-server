@@ -1,7 +1,7 @@
 /********************************************************************
  *  Proyecto: Sistema modular de comunicacion con un robot movil
  *  Subproyecto: Servidor
- *  Archivo: pluginloader.h
+ *  Archivo: pluginmanager.h
  * 	Version: 0.1
  *
  *  Autor: Manuel Angel Abeledo Garcia
@@ -15,35 +15,34 @@
 /* Funcion loadAllPlugins.
  * Precondiciones:
  * Postcondiciones:
- * Entrada: Nombre del directorio de complementos, puntero a mensajes de error.
- * Salida: Cola con punteros a los complementos.
+ * Entrada: Nombre del directorio de complementos.
+ * Salida: Cola con punteros a los complementos, mensajes de error.
  * Proceso: Abre el directorio y lee las entradas del mismo,
  * cargando los complementos utilizando la funcion loadPlugins.
  * */
 GQueue*
-loadAllPlugins			(const gchar*, gchar **);
+loadAllPlugins			(const gchar*, gchar *);
 
 /* Funcion loadPlugin.
  * Precondiciones:
  * Postcondiciones:
  * Entrada: Nombre de archivo.
- * Salida: Puntero a una estructura Plugin o mensaje de error.
+ * Salida: Puntero a una estructura Plugin, mensaje de error.
  * Proceso: Abre el archivo, comprueba que se ajusta a la definicion
  * de Plugin y lo carga en memoria.
  * */
 Plugin*
-loadPlugin				(const gchar *, gchar **);
+loadPlugin				(const gchar*, gchar*);
 
-/* Funcion unloadPlugin
+/* Funcion unloadAllPlugins
  * Precondiciones:
  * Postcondiciones:
- * Entrada: Estructura tipo Plugin.
- * Salida: Entero que indica como ha finalizado la funcion y 
- * mensaje de error si procede.
- * Proceso: Elimina el complemento y libera la memoria.
+ * Entrada: Cola de estructuras tipo Plugin
+ * Salida: Mensaje de error.
+ * Proceso: Elimina todos los complementos.
  * */ 
-gint
-unloadPlugin			(Plugin *, gchar **);
+void
+unloadAllPlugins			(GQueue*, gchar*);
 
 /*
  * VERSION 0.1
