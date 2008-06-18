@@ -7,8 +7,6 @@
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
 
-#include <glib.h>
-#include <gmodule.h>
 #include "data.h"
 #include "error.h"
 

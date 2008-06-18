@@ -7,8 +7,11 @@
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
 
-/* Estructura de los plugins
- *  - filename: nombre del plugin
+#include <glib.h>
+#include <gmodule.h>
+
+/* Estructura de los complementos
+ *  - filename: nombre del complemento
  *  - module: puntero al modulo cargado.
  *  - pluginName
  * 	- pluginDesc
@@ -29,6 +32,13 @@ typedef struct _Plugin
 	void 			(*pluginSend) 		(GQueue*);
 	void 			(*pluginReceive) 	(GQueue*);
 } Plugin;
+
+typedef struct _ThreadData
+{
+	Plugin*				tPlugin;
+	GQueue*				qMessages;
+	GMutex*				mMessages;
+} ThreadData;
 
 typedef struct _Message
 {
