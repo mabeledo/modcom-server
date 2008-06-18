@@ -63,6 +63,7 @@ loadAllPlugins			(const gchar* dirname, gchar* error)
 			 * indicar que es el ultimo parametro de la lista variable
 			 * */
 			dirEntry = g_strconcat(dirname, "/", dirEntry, NULL);
+			error = NULL;
 			
 			g_queue_push_head(qPlugins, loadPlugin(dirEntry, pluginError));
 			
@@ -109,8 +110,8 @@ loadPlugin			(const gchar *filename, gchar* error)
 	gchar* (*pluginDesc) (void);
 	gchar* (*pluginVersion) (void);
 	void (*pluginInit) (gchar* error);
-	void (*pluginSend) (GQueue* qMsg, gchar* error);
-	void (*pluginReceive) (GQueue* qMsg, gchar* error);
+	void (*pluginSend) (ThreadData* tData);
+	void (*pluginReceive) (ThreadData* tData);
 	
 	plugin = g_new0(Plugin, 1);
 	
@@ -142,6 +143,15 @@ loadPlugin			(const gchar *filename, gchar* error)
 		g_free(plugin);
 		return NULL;
 	}
+	
+	plugin->pluginName = pluginName;
+	plugin->pluginDesc = pluginDesc;
+	plugin->pluginVersion = pluginVersion;
+	plugin->pluginInit = pluginInit;
+	plugin->pluginSend = pluginSend;
+	plugin->pluginReceive = pluginReceive;
+	plugin->filename = g_strdup(filename);
+	error = NULL;
 		
 	return (plugin);
 }

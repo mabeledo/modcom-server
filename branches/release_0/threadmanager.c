@@ -17,7 +17,7 @@
  * Proceso: Comprueba que el sistema soporta hilos.
  * */
 void
-threadInit						(gchar** error)
+threadInit						(gchar* error)
 {
 	#ifdef G_THREADS_ENABLED
 		if (!g_thread_supported())
@@ -43,7 +43,6 @@ createAllThreads					(GQueue* qPlugins, GQueue* qMessages, gchar* error)
 	ThreadData* data;
 	GQueue* qThreads;
 	GMutex* mutex;
-	GThread* aux;
 	gchar* threadError;
 	gint i;
 
@@ -63,13 +62,13 @@ createAllThreads					(GQueue* qPlugins, GQueue* qMessages, gchar* error)
 		if (threadError != NULL)
 		{
 			g_queue_pop_head(qThreads);
-			g_warning("Error al crear hilo para %s: %s", data->tPlugin->pluginName(), *error);
+			g_warning("Error al crear hilo para %s: %s", data->tPlugin->pluginName(), error);
 		}
 	}
 	
 	if (g_queue_is_empty(qThreads))
 	{
-		*error = g_strdup(NOTENOUGHTHREADS);
+		error = g_strdup(NOTENOUGHTHREADS);
 		return (NULL);
 	}
 
@@ -87,14 +86,23 @@ GThread*
 createThread						(ThreadData* data, gchar* error)
 {
 	GThread* aux;
-	gchar* threadError;
+	Plugin* plugin;
+	void (*pluginReceive) (ThreadData* tData);
+	const gchar* (*pluginName) (void);
+	GError* threadError;
+	
+	plugin = data->tPlugin;
+	
+	pluginReceive = (gpointer)plugin->pluginReceive;
+	pluginName = (gpointer)plugin->pluginName;
 	
 	/* Creacion del hilo de recepcion, almacenamiento de la referencia en la cola */
-	aux = g_thread_create(plugin->pluginReceive, (gpointer)data, NULL, threadError);
+	aux = g_thread_create((gpointer)&pluginReceive, (gpointer)data, FALSE, &threadError);
 
 	if (threadError != NULL)
 	{
-		error = g_strconcat(CANNOTCREATETHREAD, " para el plugin ", (gchar*)plugin->pluginName(), ": ", threadError);
+		error = g_strconcat(CANNOTCREATETHREAD, " para el plugin ", pluginName(), ": ", threadError->message, NULL);
+		g_error_free(threadError);
 		g_free(aux);
 		return(NULL);
 	}
@@ -111,10 +119,9 @@ createThread						(ThreadData* data, gchar* error)
  * Proceso:
  * */
 gint
-destroyAllThreads					(gchar** error)
+destroyAllThreads					(gchar* error)
 {
-	
-	
+	return (0);	
 }
 
 /* Funcion destroyThread
@@ -125,8 +132,7 @@ destroyAllThreads					(gchar** error)
  * Proceso:
  * */
 void
-destroyThread						(gchar** error)
+destroyThread						(gchar* error)
 {
-	
-	
+	return;
 }
