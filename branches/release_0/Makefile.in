@@ -50,7 +50,8 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am_modcom_server_OBJECTS = main.$(OBJEXT)
+am_modcom_server_OBJECTS = modcom-server.$(OBJEXT) \
+	pluginloader.$(OBJEXT) threadmanager.$(OBJEXT)
 modcom_server_OBJECTS = $(am_modcom_server_OBJECTS)
 am__DEPENDENCIES_1 =
 modcom_server_DEPENDENCIES = $(am__DEPENDENCIES_1)
@@ -204,7 +205,14 @@ AM_CFLAGS = \
 	 -g
 
 modcom_server_SOURCES = \
-	main.c
+	data.h         \
+	error.h         \
+	modcom-server.c         \
+	msg.h         \
+	pluginloader.c         \
+	pluginloader.h         \
+	threadmanager.c         \
+	threadmanager.h
 
 modcom_server_LDFLAGS = 
 modcom_server_LDADD = $(MODCOM_SERVER_LIBS)
@@ -301,7 +309,9 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modcom-server.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pluginloader.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/threadmanager.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

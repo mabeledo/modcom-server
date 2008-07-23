@@ -569,6 +569,7 @@ on waterhouse
 
 config.status:670: creating Makefile
 config.status:670: creating config.h
+config.status:897: config.h is unchanged
 config.status:944: executing depfiles commands
 
 ## ---------------- ##
@@ -691,15 +692,15 @@ pkg_cv_MODCOM_SERVER_LIBS='-Wl,--export-dynamic -lgmodule-2.0 -ldl -lglib-2.0  '
 ## Output variables. ##
 ## ----------------- ##
 
-ACLOCAL='${SHELL} /home/wel/proyectos/proyecto/codigo/desarrollo/modcom-server/missing --run aclocal-1.10'
+ACLOCAL='${SHELL} /home/wel/proyectos/proyecto/codigo/modcom-server/branches/release_0/missing --run aclocal-1.10'
 AMDEPBACKSLASH='\'
 AMDEP_FALSE='#'
 AMDEP_TRUE=''
-AMTAR='${SHELL} /home/wel/proyectos/proyecto/codigo/desarrollo/modcom-server/missing --run tar'
+AMTAR='${SHELL} /home/wel/proyectos/proyecto/codigo/modcom-server/branches/release_0/missing --run tar'
 AR='ar'
-AUTOCONF='${SHELL} /home/wel/proyectos/proyecto/codigo/desarrollo/modcom-server/missing --run autoconf'
-AUTOHEADER='${SHELL} /home/wel/proyectos/proyecto/codigo/desarrollo/modcom-server/missing --run autoheader'
-AUTOMAKE='${SHELL} /home/wel/proyectos/proyecto/codigo/desarrollo/modcom-server/missing --run automake-1.10'
+AUTOCONF='${SHELL} /home/wel/proyectos/proyecto/codigo/modcom-server/branches/release_0/missing --run autoconf'
+AUTOHEADER='${SHELL} /home/wel/proyectos/proyecto/codigo/modcom-server/branches/release_0/missing --run autoheader'
+AUTOMAKE='${SHELL} /home/wel/proyectos/proyecto/codigo/modcom-server/branches/release_0/missing --run automake-1.10'
 AWK='gawk'
 CC='gcc'
 CCDEPMODE='depmode=gcc3'
@@ -736,7 +737,7 @@ LTLIBOBJS=''
 MAINT=''
 MAINTAINER_MODE_FALSE='#'
 MAINTAINER_MODE_TRUE=''
-MAKEINFO='${SHELL} /home/wel/proyectos/proyecto/codigo/desarrollo/modcom-server/missing --run makeinfo'
+MAKEINFO='${SHELL} /home/wel/proyectos/proyecto/codigo/modcom-server/branches/release_0/missing --run makeinfo'
 MODCOM_SERVER_CFLAGS='-I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include  '
 MODCOM_SERVER_LIBS='-Wl,--export-dynamic -lgmodule-2.0 -ldl -lglib-2.0  '
 NMEDIT=''
@@ -787,7 +788,7 @@ host_vendor='pc'
 htmldir='${docdir}'
 includedir='${prefix}/include'
 infodir='${datarootdir}/info'
-install_sh='$(SHELL) /home/wel/proyectos/proyecto/codigo/desarrollo/modcom-server/install-sh'
+install_sh='$(SHELL) /home/wel/proyectos/proyecto/codigo/modcom-server/branches/release_0/install-sh'
 libdir='${exec_prefix}/lib'
 libexecdir='${exec_prefix}/libexec'
 localedir='${datarootdir}/locale'
