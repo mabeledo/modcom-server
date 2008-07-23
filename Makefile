@@ -50,7 +50,8 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am_modcom_server_OBJECTS = main.$(OBJEXT)
+am_modcom_server_OBJECTS = modcom-server.$(OBJEXT) \
+	pluginloader.$(OBJEXT) threadmanager.$(OBJEXT)
 modcom_server_OBJECTS = $(am_modcom_server_OBJECTS)
 am__DEPENDENCIES_1 =
 modcom_server_DEPENDENCIES = $(am__DEPENDENCIES_1)
@@ -84,12 +85,12 @@ DIST_ARCHIVES = $(distdir).tar.gz
 GZIP_ENV = --best
 distuninstallcheck_listfiles = find . -type f -print
 distcleancheck_listfiles = find . -type f -print
-ACLOCAL = ${SHELL} /home/wel/proyectos/proyecto/codigo/desarrollo/modcom-server/missing --run aclocal-1.10
-AMTAR = ${SHELL} /home/wel/proyectos/proyecto/codigo/desarrollo/modcom-server/missing --run tar
+ACLOCAL = ${SHELL} /home/wel/proyectos/proyecto/codigo/modcom-server/branches/release_0/missing --run aclocal-1.10
+AMTAR = ${SHELL} /home/wel/proyectos/proyecto/codigo/modcom-server/branches/release_0/missing --run tar
 AR = ar
-AUTOCONF = ${SHELL} /home/wel/proyectos/proyecto/codigo/desarrollo/modcom-server/missing --run autoconf
-AUTOHEADER = ${SHELL} /home/wel/proyectos/proyecto/codigo/desarrollo/modcom-server/missing --run autoheader
-AUTOMAKE = ${SHELL} /home/wel/proyectos/proyecto/codigo/desarrollo/modcom-server/missing --run automake-1.10
+AUTOCONF = ${SHELL} /home/wel/proyectos/proyecto/codigo/modcom-server/branches/release_0/missing --run autoconf
+AUTOHEADER = ${SHELL} /home/wel/proyectos/proyecto/codigo/modcom-server/branches/release_0/missing --run autoheader
+AUTOMAKE = ${SHELL} /home/wel/proyectos/proyecto/codigo/modcom-server/branches/release_0/missing --run automake-1.10
 AWK = gawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
@@ -125,7 +126,7 @@ LIBTOOL = $(SHELL) $(top_builddir)/libtool
 LN_S = ln -s
 LTLIBOBJS = 
 MAINT = 
-MAKEINFO = ${SHELL} /home/wel/proyectos/proyecto/codigo/desarrollo/modcom-server/missing --run makeinfo
+MAKEINFO = ${SHELL} /home/wel/proyectos/proyecto/codigo/modcom-server/branches/release_0/missing --run makeinfo
 MKDIR_P = /usr/bin/mkdir -p
 MODCOM_SERVER_CFLAGS = -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include  
 MODCOM_SERVER_LIBS = -Wl,--export-dynamic -lgmodule-2.0 -ldl -lglib-2.0  
@@ -145,10 +146,10 @@ SET_MAKE =
 SHELL = /bin/sh
 STRIP = strip
 VERSION = 0.1
-abs_builddir = /home/wel/proyectos/proyecto/codigo/desarrollo/modcom-server
-abs_srcdir = /home/wel/proyectos/proyecto/codigo/desarrollo/modcom-server
-abs_top_builddir = /home/wel/proyectos/proyecto/codigo/desarrollo/modcom-server
-abs_top_srcdir = /home/wel/proyectos/proyecto/codigo/desarrollo/modcom-server
+abs_builddir = /home/wel/proyectos/proyecto/codigo/modcom-server/branches/release_0
+abs_srcdir = /home/wel/proyectos/proyecto/codigo/modcom-server/branches/release_0
+abs_top_builddir = /home/wel/proyectos/proyecto/codigo/modcom-server/branches/release_0
+abs_top_srcdir = /home/wel/proyectos/proyecto/codigo/modcom-server/branches/release_0
 ac_ct_CC = gcc
 ac_ct_CXX = g++
 ac_ct_F77 = gfortran
@@ -177,7 +178,7 @@ host_vendor = pc
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = $(SHELL) /home/wel/proyectos/proyecto/codigo/desarrollo/modcom-server/install-sh
+install_sh = $(SHELL) /home/wel/proyectos/proyecto/codigo/modcom-server/branches/release_0/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
@@ -204,7 +205,14 @@ AM_CFLAGS = \
 	 -g
 
 modcom_server_SOURCES = \
-	main.c
+	data.h         \
+	error.h         \
+	modcom-server.c         \
+	msg.h         \
+	pluginloader.c         \
+	pluginloader.h         \
+	threadmanager.c         \
+	threadmanager.h
 
 modcom_server_LDFLAGS = 
 modcom_server_LDADD = $(MODCOM_SERVER_LIBS)
@@ -301,7 +309,9 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-include ./$(DEPDIR)/main.Po
+include ./$(DEPDIR)/modcom-server.Po
+include ./$(DEPDIR)/pluginloader.Po
+include ./$(DEPDIR)/threadmanager.Po
 
 .c.o:
 	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

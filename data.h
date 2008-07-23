@@ -10,6 +10,8 @@
 #include <glib.h>
 #include <gmodule.h>
 
+#define MODCOM_SERVER_VERSION		"0.1"
+
 /* Estructura de los complementos
  *  - filename: nombre del complemento
  *  - module: puntero al modulo cargado.
@@ -31,11 +33,12 @@ typedef struct _Plugin
 	void			(*pluginInit)		(void);
 	void 			(*pluginSend) 		(GQueue*);
 	void 			(*pluginReceive) 	(GQueue*);
+	
+	GThread*		receiveThread;
 } Plugin;
 
 typedef struct _ThreadData
 {
-	Plugin*				tPlugin;
 	GQueue*				qMessages;
 	GMutex*				mMessages;
 } ThreadData;
@@ -46,3 +49,8 @@ typedef struct _Message
 	
 	
 } Message;
+
+typedef struct _ConfigOptions
+{
+	gchar* 		pluginDir; 
+} ConfigOptions;

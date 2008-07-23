@@ -7,7 +7,8 @@
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
 
-#include <stdio.h>
+#include "data.h"
+#include "basemanager.h"
 #include <glib.h>
 #include <gmodule.h>
 
@@ -20,30 +21,24 @@
  * */
 gint
 main				(int argc, char *argv[])
-{
-	/* Almacenamiento de la salida de funciones */
-	gint resultFunc;
-	
-	/* Colas de recepcion, envio y modulos */
-	GQueue *qReception;
-	GQueue *qSend;
-	GQueue *qModules;
-	
+{	
 	/* Opciones a manejar:
 	 *  - optVerbose activa la salida detallada del servidor
 	 *  - optDebug activa la salida de informacion de depuracion del servidor
 	 *  - optDaemon activa el modo de background
 	 * */
 	gboolean optVerbose = FALSE;
-	gboolean optDebug = FALSE;
 	gboolean optDaemon = FALSE;
+	gboolean optVersion = FALSE;
+	GError* error = NULL;
 	gchar *optConfig = "modcom-server.cfg";
+	gint i = 0;
 
 	GOptionEntry options[] = 
 	{
-		{ "config", 'c', 0, G_OPTION_ARG_FILENAME, &optConfig, "Archivo de configuracion", NULL },
-		{ "verbose", 'v', 0, G_OPTION_ARG_NONE, &optVerbose, "Salida detallada", NULL },
-		{ "debug", 'd', 0, G_OPTION_ARG_NONE, &optDebug, "Modo de depuracion", NULL },
+		{ "config", 'c', 0, G_OPTION_ARG_FILENAME, &optConfig, "Archivo de configuracion (por defecto modcom-server.cfg)", NULL },
+		{ "verbose", 'V', 0, G_OPTION_ARG_NONE, &optVerbose, "Salida detallada", NULL },
+		{ "version", 'v', 0, G_OPTION_ARG_NONE, &optVersion, "Version", NULL },
 		{ "daemon", 'D', 0, G_OPTION_ARG_NONE, &optDaemon, "Modo Demonio", NULL },
 		{ NULL }
 	};
@@ -55,41 +50,56 @@ main				(int argc, char *argv[])
 	g_option_context_set_help_enabled (context, TRUE);
 	g_option_context_set_description (context, "modcom-server es un servidor de comunicaciones modular que sirve de pasarela entre dispositivos");
 	g_option_context_add_main_entries(context, options, "modcom-server");
-	g_option_context_parse(context, &argc, &argv, NULL);
+	g_option_context_parse(context, &argc, &argv, &error);
 	g_option_context_free(context);
+	
+	if (error)
+	{
+		g_print("Opcion desconocida.\nUtiliza --help para ver la ayuda");
+		return(-1);
+	}
+	
+	if (optVersion)
+	{
+		g_print("Version %s\n", MODCOM_SERVER_VERSION);
+		return(0);
+	}
 
+	if (!g_str_equal(optConfig, "modcom-server.cfg"))
+	{
+		g_debug("Nuevo archivo de configuracion: %s", optConfig);
+	}
+	
 	/* Todos los errores criticos resultan en una salida de la aplicacion */
-	g_log_set_always_fatal(G_LOG_LEVEL_CRITICAL);
-	
-	/* Definir el modo detallado */
-	if (optDebug)
+	/* g_log_set_always_fatal(G_LOG_LEVEL_CRITICAL); */
+		 	
+	/* Definir modo demonio */
+	if (optDaemon)
 	{
-		g_debug("Modo detallado activado");
+		/* Elimina el parametro -D */
+		while (argv[i] != NULL) 
+		{
+			if (g_str_equal(argv[i], "-D") == TRUE)
+				g_stpcpy(argv[i], NULL);
+			else
+				i++;
+		}
+		/* Crea el nuevo proceso */
+		if (!g_spawn_async(NULL, argv, NULL, (G_SPAWN_DO_NOT_REAP_CHILD | G_SPAWN_STDOUT_TO_DEV_NULL),
+						   NULL, NULL, NULL, &error))
+		{
+			g_critical("Imposible cargar el programa como demonio: %s", error->message);
+			return (-2);
+		}
+		return (1);
 	}
-	else
-	{
-		
-	}
-	 	
-	/* Definir el modo de depuracion */
 	
-	
-	/* Lectura del archivo de configuracion */
-	/* TODO
+	/* Proceso */
+	/*
+	 * TODO
 	 * */
 	
-	/* Inicializar colas */
-	g_debug("Inicializando colas de mensajes");
-	qSend = g_queue_new();
-	qPlugins = g_queue_new();
-	
-	/* Cargar los modulos en memoria */
-	if ((resultFunc = loadAllPlugins ((qPlugins)) != 0)
-		g_critical("No se pudieron cargar los modulos, error %d", resultFunc);
-	
-	/* Inicializacion de los modos de envio y recepcion simultaneamente */
-	if ((resultFunc = loadSymbols(qModules, qSend, qReception)) != 0)
-		g_critical("No se cargaron correctamente los simbolos, error %d", resultFunc);
+	g_print("Proceso correcto\n");
 	
 	return(0);
 }

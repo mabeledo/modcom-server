@@ -9,31 +9,29 @@
 
 #define	CANNOTOPENDIRECTORY 	"No se ha podido abrir el directorio"
 
-/* moduleLoader.c */
-
-/* Funcion loadAllModules
+/*
+ * filemanager
  * */
+
+#define CANNOTLOCATEDIR			"El directorio de los complementos no existe"
+#define NOPLUGINFILESAVAILABLE	"No hay archivos de complemento disponibles"
+#define CANNOTLOCATECONFIGFILE	"El archivo de configuracion no existe"
+
+/* 
+ * modulemanager 
+ * */
+
 #define	CANNOTLOADMODULES		"No se pueden cargar modulos dinamicamente"
-#define	NOPLUGINSAVAILABLE		"No hay plugins disponibles"
-
-/* Funcion loadModule
- * */
+#define	NOMODULESAVAILABLE		"No hay modulos disponibles"
 #define NOMEMORYAVAILABLE		"No se ha podido reservar memoria"
-#define INCORRECTPLUGINFORMAT	"El archivo no tiene formato de plugin"
+#define INCORRECTMODULEFORMAT	"El archivo no tiene formato de modulo"
 #define NOSYMBOLSAVAILABLE		"No es un plugin o no tiene una definicion estandar"
-
-/* Funcion unloadAllModules
- * */
 #define FREEQUEUEFAILED			"La cola no ha sido liberada correctamente"
 
-/* Funcion initThreads
+/* 
+ * threadmanager 
  * */
+
 #define THREADSNOTSUPPORTED		"El sistema no soporta la creacion de hilos"
-
-/* Funcion createAllThreads
- * */
 #define NOTENOUGHTHREADS		"No se ha creado ningun thread"
-
-/* Funcion createThread
- * */
 #define CANNOTCREATETHREAD		"No se ha podido crear el thread"
