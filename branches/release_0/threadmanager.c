@@ -7,6 +7,9 @@
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
 
+#include "data.h"
+#include "error.h"
+
 #include "threadmanager.h"
 
 /* Funcion initThreads
@@ -31,6 +34,38 @@ initThreads						(gchar* error)
 		error = g_strdup(THREADSNOTSUPPORTED);
 		return (FALSE);
 	#endif
+}
+
+/* Funcion createThread
+ * Precondiciones:
+ * Postcondiciones:
+ * Entrada: Complemento cargado en memoria, cola de mensajes.
+ * Salida: Puntero a un mensaje de error.
+ * Proceso: Inicia los hilos necesarios para un complemento.
+ * */
+gboolean
+createThread						(Plugin* plugin, ThreadData* data, gchar* error)
+{
+	void (*pluginReceive) (ThreadData* tData);
+	const gchar* (*pluginName) (void);
+	GError* threadError;
+	
+	pluginReceive = (gpointer)plugin->pluginReceive;
+	pluginName = (gpointer)plugin->pluginName;
+	
+	/* Creacion del hilo de recepcion, almacenamiento de la referencia en la cola */
+	plugin->receiveThread = g_thread_create((gpointer)&pluginReceive, (gpointer)data, FALSE, &threadError);
+
+	if (threadError != NULL)
+	{
+		error = g_strconcat(CANNOTCREATETHREAD, " para el plugin ", pluginName(), ": ", threadError->message, NULL);
+		g_error_free(threadError);
+		g_free(plugin->receiveThread);
+		return (FALSE);
+	}
+	
+	error = NULL;
+	return (TRUE);
 }
 
 /* Funcion createAllThreads
@@ -60,38 +95,6 @@ createAllThreads					(GQueue* qPlugins, GQueue* qMessages, gchar* error)
 			error = g_strdup(threadError);
 			return (FALSE);
 		}
-	}
-	
-	error = NULL;
-	return (TRUE);
-}
-
-/* Funcion createThread
- * Precondiciones:
- * Postcondiciones:
- * Entrada: Complemento cargado en memoria, cola de mensajes.
- * Salida: Puntero a un mensaje de error.
- * Proceso: Inicia los hilos necesarios para un complemento.
- * */
-gboolean
-createThread						(Plugin* plugin, ThreadData* data, gchar* error)
-{
-	void (*pluginReceive) (ThreadData* tData);
-	const gchar* (*pluginName) (void);
-	GError* threadError;
-	
-	pluginReceive = (gpointer)plugin->pluginReceive;
-	pluginName = (gpointer)plugin->pluginName;
-	
-	/* Creacion del hilo de recepcion, almacenamiento de la referencia en la cola */
-	plugin->receiveThread = g_thread_create((gpointer)&pluginReceive, (gpointer)data, FALSE, &threadError);
-
-	if (threadError != NULL)
-	{
-		error = g_strconcat(CANNOTCREATETHREAD, " para el plugin ", pluginName(), ": ", threadError->message, NULL);
-		g_error_free(threadError);
-		g_free(plugin->receiveThread);
-		return (FALSE);
 	}
 	
 	error = NULL;

@@ -10,12 +10,20 @@
 #define	CANNOTOPENDIRECTORY 	"No se ha podido abrir el directorio"
 
 /*
+ * configmanager
+ * */
+
+#define CANNOTINITIALIZEPARSER	"No se puede inicializar el analizador de configuracion"
+#define CANNOTLOCATECONFIGFILE	"El archivo de configuracion no existe"
+
+/*
  * filemanager
  * */
 
 #define CANNOTLOCATEDIR			"El directorio de los complementos no existe"
 #define NOPLUGINFILESAVAILABLE	"No hay archivos de complemento disponibles"
-#define CANNOTLOCATECONFIGFILE	"El archivo de configuracion no existe"
+#define CANNOTOPENCONFIGFILE	"El archivo de configuracion no pudo ser abierto"
+
 
 /* 
  * modulemanager 

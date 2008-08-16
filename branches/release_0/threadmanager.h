@@ -7,8 +7,8 @@
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
 
-#include "data.h"
-#include "error.h"
+#ifndef THREADMANAGER_H
+#define THREADMANAGER_H
 
 /* Funcion initThreads
  * Precondiciones:
@@ -28,7 +28,7 @@ initThreads						(gchar*);
  * Proceso: 
  * */
 gboolean
-createAllThreads					(GQueue*, GQueue*, gchar*);
+createAllThreads				(GQueue*, GQueue*, gchar*);
 
 /* Funcion createThread
  * Precondiciones:
@@ -38,4 +38,10 @@ createAllThreads					(GQueue*, GQueue*, gchar*);
  * Proceso:
  * */
 gboolean
-createThread						(Plugin*, ThreadData*, gchar*);
+createThread					(Plugin*, ThreadData*, gchar*);
+
+#endif
+
+/*
+ * VERSION 0.1
+ * */
