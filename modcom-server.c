@@ -7,10 +7,11 @@
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
 
-#include "data.h"
-#include "basemanager.h"
 #include <glib.h>
-#include <gmodule.h>
+
+#include "basemanager.h"
+
+#define MODCOM_SERVER_VERSION	"0.1"
 
 /* Funcion main
  * Precondiciones:
@@ -31,6 +32,7 @@ main				(int argc, char *argv[])
 	gboolean optDaemon = FALSE;
 	gboolean optVersion = FALSE;
 	GError* error = NULL;
+	gchar* returnError;
 	gchar *optConfig = "modcom-server.cfg";
 	gint i = 0;
 
@@ -55,7 +57,7 @@ main				(int argc, char *argv[])
 	
 	if (error)
 	{
-		g_print("Opcion desconocida.\nUtiliza --help para ver la ayuda");
+		g_print("Opcion desconocida.\nUtiliza --help para ver la ayuda\n");
 		return(-1);
 	}
 	
@@ -95,12 +97,13 @@ main				(int argc, char *argv[])
 	}
 	
 	/* Proceso */
-	/*
-	 * TODO
-	 * */
+	if (!openComSystem(optConfig, returnError))
+	{
+		g_critical("%s", returnError);
+		return (-3);
+	}
 	
-	g_print("Proceso correcto\n");
-	
+	g_print("Parent process done...\n");
 	return(0);
 }
 

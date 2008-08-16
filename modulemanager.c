@@ -7,6 +7,9 @@
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
 
+#include "data.h"
+#include "error.h"
+
 #include "modulemanager.h"
 
 /* Funcion initModules
@@ -25,51 +28,7 @@ initModules				(gchar* error)
 		error = g_strdup(CANNOTLOADMODULES);
 		return (FALSE);
 	}
-
-	return (TRUE);
-}
-
-/* Funcion loadAllModules.
- * Precondiciones:
- * Postcondiciones:
- * Entrada: Nombre del directorio de complementos.
- * Salida: Cola con punteros a los complementos, mensajes de error.
- * Proceso: Abre el directorio y lee las entradas del mismo,
- * cargando los complementos utilizando la funcion loadModules.
- * */
-gboolean
-loadAllModules			(GQueue* qPlugins, gchar* error)
-{
-	gint i;
-	gchar* pluginError;
-	Plugin* aux;
 	
-	for (i = 0; i < g_queue_get_length(qPlugins); i++)
-	{
-		aux = g_queue_peek_nth(qPlugins, i);
-		if (!loadModule(aux, error))
-		{
-			/* Si no es posible cargar el modulo, la estructura Plugin
-			 * es retirada de la cola */
-			aux = g_queue_pop_nth(qPlugins, i);
-			g_warning("Error al cargar modulo %s: %s", aux->filename, pluginError);
-			g_free(aux);
-		}
-		else
-		{
-			g_debug("%s cargado correctamente", aux->filename);
-		}
-	}
-
-	/* Se comprueba que existe al menos un modulo cargado.
-	 * */
-	if (g_queue_is_empty(qPlugins))
-	{
-		error = g_strdup(NOMODULESAVAILABLE);
-		return (FALSE);
-	}	
-	
-	error = NULL;
 	return (TRUE);
 }
 
@@ -118,6 +77,50 @@ loadModule			(Plugin* plugin, gchar* error)
 	plugin->pluginReceive = (gpointer)pluginReceive;
 	
 	error = NULL;	
+	return (TRUE);
+}
+
+/* Funcion loadAllModules.
+ * Precondiciones:
+ * Postcondiciones:
+ * Entrada: Nombre del directorio de complementos.
+ * Salida: Cola con punteros a los complementos, mensajes de error.
+ * Proceso: Abre el directorio y lee las entradas del mismo,
+ * cargando los complementos utilizando la funcion loadModules.
+ * */
+gboolean
+loadAllModules			(GQueue* qPlugins, gchar* error)
+{
+	gint i;
+	gchar* pluginError;
+	Plugin* aux;
+	
+	for (i = 0; i < g_queue_get_length(qPlugins); i++)
+	{
+		aux = g_queue_peek_nth(qPlugins, i);
+		if (!loadModule(aux, error))
+		{
+			/* Si no es posible cargar el modulo, la estructura Plugin
+			 * es retirada de la cola */
+			aux = g_queue_pop_nth(qPlugins, i);
+			g_warning("Error al cargar modulo %s: %s", aux->filename, pluginError);
+			g_free(aux);
+		}
+		else
+		{
+			g_debug("%s cargado correctamente", aux->filename);
+		}
+	}
+
+	/* Se comprueba que existe al menos un modulo cargado.
+	 * */
+	if (g_queue_is_empty(qPlugins))
+	{
+		error = g_strdup(NOMODULESAVAILABLE);
+		return (FALSE);
+	}	
+	
+	error = NULL;
 	return (TRUE);
 }
 
