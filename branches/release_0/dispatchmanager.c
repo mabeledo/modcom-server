@@ -1,0 +1,41 @@
+/********************************************************************
+ *  Proyecto: Sistema modular de comunicacion con un robot movil
+ *  Subproyecto: Servidor
+ *  Archivo: dispatchmanager.c
+ * 	Version: 0.1
+ *
+ *  Autor: Manuel Angel Abeledo Garcia
+ ********************************************************************/
+
+#include "data.h"
+#include "error.h"
+
+#include "dispatchmanager.h"
+
+/* Funcion initDispatcher
+ * Precondiciones:
+ * Postcondiciones:
+ * Entrada:
+ * Salida:
+ * Proceso:
+ * NOT IMPLEMENTED
+ * */
+gboolean
+initDispatchers					(gchar* error)
+{
+	error = NULL;
+	return (TRUE);
+}
+
+/* Funcion loadAllDispatchers
+ * Precondiciones:
+ * Postcondiciones:
+ * Entrada:
+ * Salida:
+ * Proceso:
+ * */
+gboolean
+loadAllDispatchers				(GQueue* qPlugins, GAsyncQueue* qMessages, GData* dispatchConfig, gchar* error)
+{
+	
+}
