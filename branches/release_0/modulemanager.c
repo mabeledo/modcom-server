@@ -45,9 +45,9 @@ loadModule			(Plugin* plugin, gchar* error)
 	gchar* (*pluginName) (void);
 	gchar* (*pluginDesc) (void);
 	gchar* (*pluginVersion) (void);
-	void (*pluginInit) (gchar* error);
-	void (*pluginSend) (ThreadData* tData);
-	void (*pluginReceive) (ThreadData* tData);
+	gboolean (*pluginInit) (gpointer data, gchar* error);
+	gboolean (*pluginSend) (gpointer data, gchar* error);
+	gpointer (*pluginReceive) (gpointer data);
 	
 	plugin->module = g_module_open(plugin->filename, G_MODULE_BIND_LOCAL);
 	
