@@ -7,6 +7,10 @@
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
 
+/* TODO
+ * Eliminar archivo, asignar errores a cada modulo
+ * */
+
 #define	CANNOTOPENDIRECTORY 	"No se ha podido abrir el directorio"
 
 /*
@@ -15,6 +19,10 @@
 
 #define CANNOTINITIALIZEPARSER	"No se puede inicializar el analizador de configuracion"
 #define CANNOTLOCATECONFIGFILE	"El archivo de configuracion no existe"
+#define NOGROUPAVAILABLE		"El grupo no esta disponible: "
+#define NOGROUPSAVAILABLE		"No hay grupos disponibles"
+#define NOGROUPSETAVAILABLE		"No hay grupos que contengan el patron: "
+
 
 /*
  * filemanager

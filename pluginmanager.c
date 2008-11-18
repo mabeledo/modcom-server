@@ -26,10 +26,13 @@
  * Proceso:
  * */
 gboolean
-initPluginFiles				(const gchar* dirname, gchar* error)
+initPluginFiles				(GData* pluginConfig, gchar* error)
 {
+	gchar* directory;
+	directory = (gchar *)g_datalist_get_data(&pluginConfig, "Directory");
+	
 	/* Comprueba que el directorio de los modulos existe */
-	if (!g_file_test(dirname, (G_FILE_TEST_EXISTS | G_FILE_TEST_IS_DIR)))
+	if (!g_file_test(directory, (G_FILE_TEST_EXISTS | G_FILE_TEST_IS_DIR)))
 	{
 		error = g_strdup(CANNOTLOCATEDIR);
 		return (FALSE);
@@ -47,16 +50,19 @@ initPluginFiles				(const gchar* dirname, gchar* error)
  * Proceso:
  * */
 gboolean
-loadAllPluginFiles			(GQueue* qPlugins, const gchar* dirname, gchar* error)
+loadAllPluginFiles			(GQueue* qPlugins, GData* pluginConfig, GData* pluginSetConfig, gchar* error)
 {
 	GDir* pluginDir;
+	gchar* directory;
 	gchar* dirEntry;
 	Plugin* aux;
+	
+	directory = (gchar*)g_datalist_get_data(&pluginConfig, "Directory");
 	
 	/* Se supondra que los modulos se encuentran en un directorio
 	 * especifico.
 	 * */
-	if ((pluginDir = g_dir_open(dirname, 0, NULL)) == NULL)
+	if ((pluginDir = g_dir_open(directory, 0, NULL)) == NULL)
 	{
 		error = g_strdup(CANNOTOPENDIRECTORY);
 		return (FALSE);
@@ -71,10 +77,10 @@ loadAllPluginFiles			(GQueue* qPlugins, const gchar* dirname, gchar* error)
 			/* La funcion g_strconcat necesita terminar con NULL, para
 			 * indicar que es el ultimo parametro de la lista variable
 			 * */
-			dirEntry = g_strconcat(dirname, "/", dirEntry, NULL);
+			dirEntry = g_strconcat(directory, "/", dirEntry, NULL);
 			aux = g_new0(Plugin, 1);
 			aux->filename = g_strdup(dirEntry);
-			g_debug(aux->filename);
+			/* aux->config = */
 			g_queue_push_head(qPlugins, aux);
 		}
 	}

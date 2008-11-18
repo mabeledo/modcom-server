@@ -79,20 +79,24 @@ main				(int argc, char *argv[])
 	if (optDaemon)
 	{
 		/* Elimina el parametro -D */
-		while (argv[i] != NULL) 
+		while (argv[i] != NULL)
 		{
 			if (g_str_equal(argv[i], "-D") == TRUE)
 				g_stpcpy(argv[i], NULL);
 			else
 				i++;
 		}
-		/* Crea el nuevo proceso */
+		/* Crea el nuevo proceso.
+		 * Redirige la salida a /dev/null, por lo que no aparecera ningun
+		 * mensaje de depuracion en pantalla.
+		 * */
 		if (!g_spawn_async(NULL, argv, NULL, (G_SPAWN_DO_NOT_REAP_CHILD | G_SPAWN_STDOUT_TO_DEV_NULL),
 						   NULL, NULL, NULL, &error))
 		{
 			g_critical("Imposible cargar el programa como demonio: %s", error->message);
 			return (-2);
 		}
+		
 		return (1);
 	}
 	

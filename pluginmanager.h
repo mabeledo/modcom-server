@@ -7,6 +7,9 @@
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
 
+#ifndef PLUGINMANAGER_H
+#define PLUGINMANAGER_H
+
 /* Funcion initPluginFiles
  * Precondiciones:
  * Postcondiciones:
@@ -15,7 +18,7 @@
  * Proceso:
  * */
 gboolean
-initPluginFiles				(const gchar*, gchar*);
+initPluginFiles				(GData*, gchar*);
 
 /* Funcion loadAllPluginFiles
  * Precondiciones:
@@ -25,6 +28,6 @@ initPluginFiles				(const gchar*, gchar*);
  * Proceso:
  * */
 gboolean
-loadAllPluginFiles			(GQueue*, const gchar*, gchar*);
- 
+loadAllPluginFiles			(GQueue*, GData*, GData*, gchar*);
 
+#endif
