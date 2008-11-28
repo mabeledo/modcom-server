@@ -23,10 +23,10 @@ const gchar*
 pluginVersion						();
 
 gboolean
-pluginInit							(gpointer, gchar*);
+pluginInit							(gpointer, gchar**);
 
 gboolean
-pluginSend							(gpointer, gchar*);
+pluginSend							(gpointer, gchar**);
 
 gpointer
 pluginReceive						(gpointer);
