@@ -26,7 +26,7 @@
 #define CONNECTERROR	"connect() error"
 #define SENDERROR		"send() error"
 
-/* Plugin global variables.
+/* Global variables.
  * These might be defined in the configuration file.
  * */
 gint listenPort = LISTENPORT;
@@ -51,15 +51,16 @@ pluginVersion						()
 }
 
 gboolean
-pluginInit							(gpointer data, gchar* error)
+pluginInit							(gpointer data, gchar** error)
 {
 	/* Load configuration parameters */
 	g_debug("Complemento TCP/IP correcto...");
+	listenPort = (gint)data;
 	return (TRUE);
 }
 
 gboolean
-pluginSend							(gpointer data, gchar* error)
+pluginSend							(gpointer data, gchar** error)
 {
 	Message* msg = (Message*)data;
 	
@@ -81,14 +82,14 @@ pluginSend							(gpointer data, gchar* error)
 		
 		if ((clientSd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		{
-			error = g_strdup(SOCKETERROR);
+			*error = g_strdup(SOCKETERROR);
 			return (FALSE);
 		}
 		
 		/* Gets a struct servent for LISTENPORT port and TCP/IP protocol. */
 		if ((server = getservbyport(listenPort, "tcp")) == NULL)
 		{
-			error = g_strdup(GETSERVERROR);
+			*error = g_strdup(GETSERVERROR);
 			return (FALSE);
 		}
 		
@@ -98,14 +99,14 @@ pluginSend							(gpointer data, gchar* error)
 		
 		if (inet_aton(msg->dest, &addr.sin_addr) == 0)
 		{
-			error = g_strdup(ATONERROR);
+			*error = g_strdup(ATONERROR);
 			return (FALSE);
 		}
 		
 		/* Connects to server. */
 		if (connect(clientSd, (struct sockaddr*)&addr, addrLen) != 0)
 		{
-			error = g_strdup(CONNECTERROR);
+			*error = g_strdup(CONNECTERROR);
 			return (FALSE);
 		}
 		
@@ -114,14 +115,13 @@ pluginSend							(gpointer data, gchar* error)
 		 * */
 		if (send(clientSd, msgStr, strlen(msgStr), 0) <= 0)
 		{
-			error = g_strdup(SENDERROR);
+			*error = g_strdup(SENDERROR);
 			return (FALSE);
 		}
 		
 		close(clientSd);
 	#endif
-	
-	error = NULL;
+
 	return (TRUE);
 }
 

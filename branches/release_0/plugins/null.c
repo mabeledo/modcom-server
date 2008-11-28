@@ -32,14 +32,14 @@ pluginVersion						()
 }
 
 gboolean
-pluginInit							(gpointer data, gchar* error)
+pluginInit							(gpointer data, gchar** error)
 {
 	g_debug("Complemento NULL correcto...");
 	return (TRUE);
 }
 
 gboolean
-pluginSend							(gpointer data, gchar* error)
+pluginSend							(gpointer data, gchar** error)
 {
 	return (TRUE);
 }

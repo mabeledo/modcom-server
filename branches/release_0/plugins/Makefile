@@ -11,9 +11,9 @@ LDFLAGS=`pkg-config --libs glib-2.0` -lc -shared -Wl,-soname,
 
 null:
 	$(CC) $(CFLAGS) null.c
-	$(CC) $(LDFLAGS)libnull.so.1 -o libnull.so null.o 
+	$(CC) $(LDFLAGS)libnull.so.1 -o null.so null.o 
 
 tcpip:
 	$(CC) $(CFLAGS) tcpip.c
-	$(CC) $(LDFLAGS)libtcpip.so.1 -o libtcpip.so tcpip.o 
+	$(CC) $(LDFLAGS)libtcpip.so.1 -o tcpip.so tcpip.o 
 	
