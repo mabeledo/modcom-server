@@ -18,9 +18,9 @@
  * Proceso:
  * */
 gboolean
-initDispatchers					(gchar*);
+initDispatcher					(gchar**);
 
-/* Funcion loadAllDispatchers
+/* Funcion loadDispatcher
  * Precondiciones:
  * Postcondiciones:
  * Entrada:
@@ -28,6 +28,6 @@ initDispatchers					(gchar*);
  * Proceso:
  * */
 gboolean
-loadAllDispatchers				(GQueue*, GAsyncQueue*, GData*, gchar*);
+loadDispatcher					(GQueue*, GAsyncQueue*, GData*, gchar**);
 
 #endif

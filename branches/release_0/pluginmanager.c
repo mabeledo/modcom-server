@@ -18,6 +18,10 @@
 	#define G_MODULE_SUFFIX "so"
 #endif
 
+/* Global variables
+ * */
+gchar* directory;
+
 /* Funcion initPluginFiles
  * Precondiciones:
  * Postcondiciones:
@@ -26,19 +30,17 @@
  * Proceso:
  * */
 gboolean
-initPluginFiles				(GData* pluginConfig, gchar* error)
+initPluginFiles				(GData** pluginConfig, gchar** error)
 {
-	gchar* directory;
-	directory = (gchar *)g_datalist_get_data(&pluginConfig, "Directory");
-	
+	directory = g_datalist_get_data(pluginConfig, "directory");
+
 	/* Comprueba que el directorio de los modulos existe */
 	if (!g_file_test(directory, (G_FILE_TEST_EXISTS | G_FILE_TEST_IS_DIR)))
 	{
-		error = g_strdup(CANNOTLOCATEDIR);
+		*error = g_strdup(CANNOTLOCATEDIR);
 		return (FALSE);
 	}
-	
-	error = NULL;
+
 	return (TRUE);
 }
 
@@ -50,26 +52,23 @@ initPluginFiles				(GData* pluginConfig, gchar* error)
  * Proceso:
  * */
 gboolean
-loadAllPluginFiles			(GQueue* qPlugins, GData* pluginConfig, GData* pluginSetConfig, gchar* error)
+loadAllPluginFiles			(GQueue* qPlugins, GData** pluginSetConfig, gchar** error)
 {
 	GDir* pluginDir;
-	gchar* directory;
 	gchar* dirEntry;
+	gchar* configEntry;
 	Plugin* aux;
-	
-	directory = (gchar*)g_datalist_get_data(&pluginConfig, "Directory");
-	
+
 	/* Se supondra que los modulos se encuentran en un directorio
 	 * especifico.
 	 * */
 	if ((pluginDir = g_dir_open(directory, 0, NULL)) == NULL)
 	{
-		error = g_strdup(CANNOTOPENDIRECTORY);
+		*error = g_strdup(CANNOTOPENDIRECTORY);
 		return (FALSE);
 	}
 	
-	/* Se leeran todas las entradas del directorio.
-	 * */
+	/* Every directory entry is read */
 	while ((dirEntry = (gchar*)g_dir_read_name(pluginDir)) != NULL)
 	{
 		if (g_str_has_suffix(dirEntry, G_MODULE_SUFFIX))
@@ -77,23 +76,23 @@ loadAllPluginFiles			(GQueue* qPlugins, GData* pluginConfig, GData* pluginSetCon
 			/* La funcion g_strconcat necesita terminar con NULL, para
 			 * indicar que es el ultimo parametro de la lista variable
 			 * */
+			configEntry = g_strsplit(dirEntry, ".", 2)[0];
 			dirEntry = g_strconcat(directory, "/", dirEntry, NULL);
 			aux = g_new0(Plugin, 1);
 			aux->filename = g_strdup(dirEntry);
-			/* aux->config = */
+			aux->config = g_datalist_get_data(pluginSetConfig, configEntry);
 			g_queue_push_head(qPlugins, aux);
 		}
 	}
 	
 	if (g_queue_is_empty(qPlugins))
 	{
-		error = g_strdup(NOPLUGINFILESAVAILABLE);
+		*error = g_strdup(NOPLUGINFILESAVAILABLE);
 		return (FALSE);
 	}
 
 	g_dir_close(pluginDir);
 	
-	error = NULL;
 	return (TRUE);
 }
 

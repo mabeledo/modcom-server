@@ -21,18 +21,17 @@
  * Proceso: Comprueba que el sistema soporta hilos.
  * */
 gboolean
-initReceivers					(gchar* error)
+initReceivers					(gchar** error)
 {
 	#ifdef G_THREADS_ENABLED
 		if (!g_thread_supported())
 		{
 			g_thread_init(NULL);
 		}
-		
-		error = NULL;
+
 		return (TRUE);
 	#else
-		error = g_strdup(THREADSNOTSUPPORTED);
+		*error = g_strdup(THREADSNOTSUPPORTED);
 		return (FALSE);
 	#endif
 }
@@ -45,26 +44,22 @@ initReceivers					(gchar* error)
  * Proceso: Inicia los hilos necesarios para un complemento.
  * */
 gboolean
-loadReceiver					(Plugin* plugin, GAsyncQueue* qMessages, gchar* error)
+loadReceiver					(Plugin* plugin, GAsyncQueue* qMessages, gchar** error)
 {
 	GError* threadError = NULL;
 
-	/* TODO
-	 * Meter configuracion en el thread
-	 * */
 	/* Creacion del hilo de recepcion, almacenamiento de la referencia en la cola */
 	plugin->receiveThread = g_thread_create(plugin->pluginReceive, (gpointer)qMessages, TRUE, &threadError);
 
 	if (threadError != NULL)
 	{
-		error = g_strconcat(CANNOTCREATETHREAD, ". Plugin: ", plugin->pluginName(),
+		*error = g_strconcat(CANNOTCREATETHREAD, ". Plugin: ", plugin->pluginName(),
 							" Error: ", threadError->message, NULL);
 		g_error_free(threadError);
 		g_free(plugin->receiveThread);
 		return (FALSE);
 	}
-	
-	error = NULL;
+
 	return (TRUE);
 }
 
@@ -76,7 +71,7 @@ loadReceiver					(Plugin* plugin, GAsyncQueue* qMessages, gchar* error)
  * Proceso: Inicia los hilos necesarios para cada uno de los complementos cargados.
  * */
 gboolean
-loadAllReceivers				(GQueue* qPlugins, GAsyncQueue* qMessages, gchar* error)
+loadAllReceivers				(GQueue* qPlugins, GAsyncQueue* qMessages, gchar** error)
 {
 	Plugin* auxPlugin;
 	gchar* threadError;
@@ -86,9 +81,9 @@ loadAllReceivers				(GQueue* qPlugins, GAsyncQueue* qMessages, gchar* error)
 	for (i = 0; i < g_queue_get_length(qPlugins); i++)
 	{
 		/* Rellena la estructura de datos para el hilo */
-		if (!(loadReceiver((Plugin*)g_queue_peek_nth(qPlugins, i), qMessages, threadError)))
+		if (!(loadReceiver((Plugin*)g_queue_peek_nth(qPlugins, i), qMessages, &threadError)))
 		{
-			error = g_strdup(threadError);
+			*error = g_strdup(threadError);
 			return (FALSE);
 		}
 	}
@@ -99,7 +94,6 @@ loadAllReceivers				(GQueue* qPlugins, GAsyncQueue* qMessages, gchar* error)
 		auxPlugin = (Plugin*)g_queue_peek_nth(qPlugins, i);
 		g_thread_join(auxPlugin->receiveThread);
 	}
-	
-	error = NULL;
+
 	return (TRUE);
 }

@@ -19,7 +19,7 @@
 
 #define CANNOTINITIALIZEPARSER	"No se puede inicializar el analizador de configuracion"
 #define CANNOTLOCATECONFIGFILE	"El archivo de configuracion no existe"
-#define NOGROUPAVAILABLE		"El grupo no esta disponible: "
+#define NOGROUPAVAILABLE		"El grupo no esta disponible"
 #define NOGROUPSAVAILABLE		"No hay grupos disponibles"
 #define NOGROUPSETAVAILABLE		"No hay grupos que contengan el patron: "
 

@@ -18,7 +18,7 @@
  * Proceso: 
  * */
 gboolean
-initReceivers					(gchar*);
+initReceivers					(gchar**);
 
 /* Funcion loadAllReceivers
  * Precondiciones:
@@ -28,7 +28,7 @@ initReceivers					(gchar*);
  * Proceso: 
  * */
 gboolean
-loadAllReceivers				(GQueue*, GAsyncQueue*, gchar*);
+loadAllReceivers				(GQueue*, GAsyncQueue*, gchar**);
 
 #endif
 

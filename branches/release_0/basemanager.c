@@ -16,7 +16,7 @@
 #include "receivemanager.h"
 #include "dispatchmanager.h"
 #include "basemanager.h"
-
+#include <glib/gprintf.h>
 /* Funcion openComSystem
  * Precondiciones:
  * Postcondiciones:
@@ -25,42 +25,31 @@
  * Proceso: 
  * */
 gboolean
-openComSystem				(const gchar* configFile, gchar* error)
+openComSystem				(const gchar* configFile, gchar** error)
 {
-	/*  - kConfig, contiene la transcripcion del fichero de configuracion
-	 * 	  en memoria.
-	 *  - pluginConfig, contiene la configuracion general de complementos.
-	 *  - pluginSetConfig, contiene las configuraciones de cada uno de los
-	 * 	  complementos.
+	/* Memory allocation is done here, to avoid local issues or
+	 * automatic deallocation after function exit.
 	 * */
-	GKeyFile* kConfig;
+	GData* dConfig;
 	GData* pluginConfig;
+	GData* moduleConfig;
 	GData* dispatchConfig;
 	GData* pluginSetConfig;
-	
 	GQueue* qPlugins;
 	GAsyncQueue* qMessages;
-	
-	/* *
-	 * Primera fase (configuracion):
-	 *  - Existe el ficheros de configuracion.
-	 *  - Se puede cargar el fichero de configuracion.
-	 * Devuelve el error del proceso que primero ha fallado.
+
+	/* All data in the configuration file is copied into a
+	 * GData structure, in order to handle configuration parameters
+	 * easily.
 	 * */
-	kConfig = g_key_file_new();
-	
 	if (!(initConfigFile(configFile, error) &&
-		  loadConfigFile(configFile, kConfig, error)))
+	      loadConfigFile(configFile, &dConfig, error)))
 	{
 		return (FALSE);
 	}
 	
-	/* Las configuraciones son volcadas a diccionarios para cada una
-	 * de las partes de la aplicacion que necesita configuracion.
-	 * */
-	pluginConfig = getGroupConfig(kConfig, "Plugins", error);
-	dispatchConfig = getGroupConfig(kConfig, "Dispatcher", error);
-	pluginSetConfig = getGroupSetConfig(kConfig, "plugin", error);
+	/* Gets per module configuration settings. */
+	pluginConfig = g_datalist_get_data(&dConfig, "plugins");
 	
 	/* *
 	 * Segunda fase (comprobacion y ejecucion de procesos):
@@ -69,38 +58,38 @@ openComSystem				(const gchar* configFile, gchar* error)
 	 *  - El sistema puede utilizar hilos de ejecucion.
 	 *  - (Initdispatcher)
 	 * */
-	if (!(initPluginFiles(pluginConfig, error) &&
+	if (!(initPluginFiles(&pluginConfig, error) &&
 		  initModules(error) &&
 		  initReceivers(error) &&
-		  initDispatchers(error)))
+		  initDispatcher(error)))
 	{
 		return (FALSE);
 	}
 	
+	/* Free memory containing configuration patterns already used. */
+	g_datalist_remove_data(&dConfig, "plugins");
+	pluginSetConfig = dConfig;
+	
 	/* Inicializa la cola de plugins y de mensajes. */
 	qPlugins = g_queue_new();
 	qMessages = g_async_queue_new();
-	/* qMessages = g_new0(MsgQueue, 1);
-	 * qMessages->messages = g_queue_new();
-	 * qMessages->mutex = g_mutex_new();
-	 * */
 	
 	/* Se inicializan las estructuras de plugins.
 	 *  - Explora el directorio de plugins y carga los ficheros.
 	 *  - Carga las funciones en las estructuras de plugin correspondientes.
 	 * */
-	if (!(loadAllPluginFiles(qPlugins, pluginConfig, pluginSetConfig, error) &&
+	if (!(loadAllPluginFiles(qPlugins, &dConfig, error) &&
 		  loadAllModules(qPlugins, error)))
 	{
 		return (FALSE);
 	}
-	
+
 	/* DispatchManager inicia el proceso de reparto de mensajes de la
 	 * cola.
-	 * Receivemanager crea los hilos de ejecucion necesarios para la
+	 * Receivemanager crea los hilos de ejecucion	 necesarios para la
 	 * recepcion asincrona de mensajes.
 	 * */
-	if (!loadAllDispatchers(qPlugins, qMessages, dispatchConfig, error))
+	if (!loadDispatcher(qPlugins, qMessages, dispatchConfig, error))
 	{
 		return (FALSE);
 	}

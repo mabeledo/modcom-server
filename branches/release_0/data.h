@@ -37,8 +37,8 @@ typedef struct _Plugin
 	const gchar* 	(*pluginDesc) 		(void);
 	const gchar* 	(*pluginVersion) 	(void);
 	const gchar* 	(*pluginProvides) 	(void);
-	void			(*pluginInit)		(gchar*);
-	gpointer 		(*pluginSend) 		(gpointer, gchar*);
+	void			(*pluginInit)		(gpointer, gchar**);
+	gpointer 		(*pluginSend) 		(gpointer, gchar**);
 	gpointer		(*pluginReceive) 	(gpointer);
 	
 	/* Manejados por threadmanager */
