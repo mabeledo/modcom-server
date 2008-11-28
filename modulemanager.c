@@ -20,12 +20,12 @@
  * Proceso:
  * */
 gboolean
-initModules				(gchar* error)
+initModules				(gchar** error)
 {	
 	/* Comprueba que se pueden cargar modulos dinamicamente */
 	if (!g_module_supported())
 	{
-		error = g_strdup(CANNOTLOADMODULES);
+		*error = g_strdup(CANNOTLOADMODULES);
 		return (FALSE);
 	}
 	
@@ -40,20 +40,20 @@ initModules				(gchar* error)
  * Proceso:
  * */
 gboolean
-loadModule			(Plugin* plugin, gchar* error)
+loadModule			(Plugin* plugin, gchar** error)
 {
 	gchar* (*pluginName) (void);
 	gchar* (*pluginDesc) (void);
 	gchar* (*pluginVersion) (void);
-	gboolean (*pluginInit) (gpointer data, gchar* error);
-	gboolean (*pluginSend) (gpointer data, gchar* error);
+	gboolean (*pluginInit) (gpointer data, gchar** error);
+	gboolean (*pluginSend) (gpointer data, gchar** error);
 	gpointer (*pluginReceive) (gpointer data);
 	
 	plugin->module = g_module_open(plugin->filename, G_MODULE_BIND_LOCAL);
 	
 	if (plugin->module == NULL)
 	{
-		error = g_strdup(INCORRECTMODULEFORMAT);
+		*error = g_strdup(INCORRECTMODULEFORMAT);
 		return (FALSE);
 	}
 	
@@ -65,7 +65,7 @@ loadModule			(Plugin* plugin, gchar* error)
 		g_module_symbol(plugin->module, "pluginReceive", (gpointer)&pluginReceive)))
 	{
 		g_module_close(plugin->module);
-		error = g_strdup(NOSYMBOLSAVAILABLE);
+		*error = g_strdup(NOSYMBOLSAVAILABLE);
 		return (FALSE);
 	}
 	
@@ -76,7 +76,12 @@ loadModule			(Plugin* plugin, gchar* error)
 	plugin->pluginSend = (gpointer)pluginSend;
 	plugin->pluginReceive = (gpointer)pluginReceive;
 	
-	error = NULL;	
+	/* Initialize module.
+	 * The first parameter is a GData filled with the plugin configuration
+	 * options.
+	 * */
+	plugin->pluginInit((gpointer)plugin->config, error);
+
 	return (TRUE);
 }
 
@@ -89,7 +94,7 @@ loadModule			(Plugin* plugin, gchar* error)
  * cargando los complementos utilizando la funcion loadModules.
  * */
 gboolean
-loadAllModules			(GQueue* qPlugins, gchar* error)
+loadAllModules			(GQueue* qPlugins, gchar** error)
 {
 	gint i;
 	gchar* pluginError;
@@ -116,11 +121,10 @@ loadAllModules			(GQueue* qPlugins, gchar* error)
 	 * */
 	if (g_queue_is_empty(qPlugins))
 	{
-		error = g_strdup(NOMODULESAVAILABLE);
+		*error = g_strdup(NOMODULESAVAILABLE);
 		return (FALSE);
 	}	
-	
-	error = NULL;
+
 	return (TRUE);
 }
 
@@ -132,11 +136,10 @@ loadAllModules			(GQueue* qPlugins, gchar* error)
  * Proceso: Elimina todos los modulos cargados.
  * */ 
 gboolean
-unloadAllModules				(GQueue* qPlugins, gchar* error)
+unloadAllModules				(GQueue* qPlugins, gchar** error)
 {
 	/* Libera uno por uno los modulos de la cola.
 	 * */
-	error = NULL;
 	return (TRUE);
 }
 

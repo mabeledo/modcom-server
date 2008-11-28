@@ -21,13 +21,12 @@
  * NOT IMPLEMENTED
  * */
 gboolean
-initDispatchers					(gchar* error)
+initDispatcher					(gchar** error)
 {
-	error = NULL;
 	return (TRUE);
 }
 
-/* Funcion loadAllDispatchers
+/* Funcion loadDispatcher
  * Precondiciones:
  * Postcondiciones:
  * Entrada:
@@ -35,7 +34,7 @@ initDispatchers					(gchar* error)
  * Proceso:
  * */
 gboolean
-loadAllDispatchers				(GQueue* qPlugins, GAsyncQueue* qMessages, GData* dispatchConfig, gchar* error)
+loadDispatcher					(GQueue* qPlugins, GAsyncQueue* qMessages, GData* dispatchConfig, gchar** error)
 {
-	
+	return (TRUE);
 }

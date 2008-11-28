@@ -18,7 +18,17 @@
  * Proceso:
  * */
 gboolean
-initConfigFile				(const gchar*, gchar*);
+initConfigFile				(const gchar*, gchar**);
+
+/* Funcion getGroupSetLength
+ * Precondiciones:
+ * Postcondiciones:
+ * Entrada:
+ * Salida:
+ * Proceso:
+ * */
+gint
+getGroupSetLength			(const gchar*, gchar**);
 
 /* Funcion loadConfigFile
  * Precondiciones:
@@ -28,7 +38,7 @@ initConfigFile				(const gchar*, gchar*);
  * Proceso:
  * */
 gboolean
-loadConfigFile				(const gchar*, GKeyFile*, gchar*);
+loadConfigFile				(const gchar*, GData**, gchar**);
 
 /* Funcion getGroupConfig
  * Precondiciones:
@@ -38,7 +48,7 @@ loadConfigFile				(const gchar*, GKeyFile*, gchar*);
  * Proceso:
  * */
 GData*
-getGroupConfig				(GKeyFile*, const gchar*, gchar*);
+getGroupConfig				(GKeyFile*, const gchar*, gchar**);
 
 /* Funcion getGroupSetConfig
  * Obtiene un diccionario GData con pares clave/valor constituidos por
@@ -51,6 +61,6 @@ getGroupConfig				(GKeyFile*, const gchar*, gchar*);
  * 			  contiene estructuras GData).
  * */
 GData*
-getGroupSetConfig				(GKeyFile* kConfig, const gchar* pattern, gchar* error);
+getGroupSetConfig				(GKeyFile*, const gchar*, gchar**);
 
 #endif

@@ -20,7 +20,7 @@
  * Proceso: 
  * */
 gboolean
-openComSystem				(const gchar*, gchar*);
+openComSystem				(const gchar*, gchar**);
 
 /* Funcion closeComSystem
  * Precondiciones:

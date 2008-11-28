@@ -18,7 +18,7 @@
  * Proceso: Comprueba que el sistema soporta hilos.
  * */
 gboolean
-initModules				(gchar*);
+initModules				(gchar**);
 
 /* Funcion loadAllModules.
  * Precondiciones:
@@ -29,7 +29,7 @@ initModules				(gchar*);
  * cargando los complementos utilizando la funcion loadModules.
  * */
 gboolean
-loadAllModules			(GQueue*, gchar*);
+loadAllModules			(GQueue*, gchar**);
 
 /* Funcion loadModule.
  * Precondiciones:
@@ -39,7 +39,7 @@ loadAllModules			(GQueue*, gchar*);
  * Proceso:
  * */
 gboolean
-loadModule			(Plugin*, gchar*);
+loadModule				(Plugin*, gchar**);
 
 /* Funcion unloadAllModules
  * Precondiciones:
@@ -49,7 +49,7 @@ loadModule			(Plugin*, gchar*);
  * Proceso:
  * */ 
 gboolean
-unloadAllModules				(GQueue*, gchar*);
+unloadAllModules		(GQueue*, gchar**);
 
 #endif
 

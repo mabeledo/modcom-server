@@ -32,7 +32,7 @@ main				(int argc, char *argv[])
 	gboolean optDaemon = FALSE;
 	gboolean optVersion = FALSE;
 	GError* error = NULL;
-	gchar* returnError;
+	gchar** returnError;
 	gchar *optConfig = "modcom-server.cfg";
 	gint i = 0;
 
@@ -103,7 +103,7 @@ main				(int argc, char *argv[])
 	/* Proceso */
 	if (!openComSystem(optConfig, returnError))
 	{
-		g_critical("%s", returnError);
+		g_critical("%s", *returnError);
 		return (-3);
 	}
 	
