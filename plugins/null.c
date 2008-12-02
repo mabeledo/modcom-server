@@ -9,23 +9,30 @@
 
 #include "null.h"
 
+#define PLUGINTYPE		1
 #define PLUGINNAME		"null"
 #define PLUGINDESC		"Sin funcionalidad"
 #define PLUGINVERSION	"0.1"
 
-const gchar*
+gushort
+pluginType							()
+{
+	return ((gushort)PLUGINTYPE);
+}
+
+gchar*
 pluginName							()
 {
 	return (PLUGINNAME);
 }
 
-const gchar*
+gchar*
 pluginDesc							()
 {
 	return (PLUGINDESC);
 }
 
-const gchar*
+gchar*
 pluginVersion						()
 {
 	return (PLUGINVERSION);
@@ -34,7 +41,7 @@ pluginVersion						()
 gboolean
 pluginInit							(gpointer data, gchar** error)
 {
-	g_debug("Complemento NULL correcto...");
+	g_debug("NULL plugin loaded and initialized");
 	return (TRUE);
 }
 
