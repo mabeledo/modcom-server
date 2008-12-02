@@ -30,7 +30,7 @@ openComSystem				(const gchar*, gchar**);
  * Proceso: 
  * */
 gboolean
-closeComSystem				(gchar*);
+closeComSystem				(gchar**);
 
 #endif
 
