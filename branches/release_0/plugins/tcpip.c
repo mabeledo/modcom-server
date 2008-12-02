@@ -9,11 +9,12 @@
 
 #include "tcpip.h"
 
+#define PLUGINTYPE		2
 #define PLUGINNAME		"tcpip"
 #define PLUGINDESC		"Complemento de comunicaciones a traves de protocolo TCP/IP"
 #define PLUGINVERSION	"0.1"
 
-#define LISTENPORT		1337
+#define LISTENPORT		31337
 #define BUFFERLEN		2048
 
 /* Error messages. */
@@ -30,21 +31,26 @@
  * These might be defined in the configuration file.
  * */
 gint listenPort = LISTENPORT;
-gint bufferLen = BUFFERLEN;
 
-const gchar*
+gushort
+pluginType							()
+{
+	return ((gushort)PLUGINTYPE);
+}
+
+gchar*
 pluginName							()
 {
 	return (PLUGINNAME);
 }
 
-const gchar*
+gchar*
 pluginDesc							()
 {
 	return (PLUGINDESC);
 }
 
-const gchar*
+gchar*
 pluginVersion						()
 {
 	return (PLUGINVERSION);
@@ -53,9 +59,15 @@ pluginVersion						()
 gboolean
 pluginInit							(gpointer data, gchar** error)
 {
+	GData* tcpipConfig = (GData*)data;
+	
 	/* Load configuration parameters */
-	g_debug("Complemento TCP/IP correcto...");
-	listenPort = (gint)data;
+	if (g_datalist_get_data(&tcpipConfig, "port") != NULL)
+	{
+		listenPort = (gint)g_strtod((gchar*)g_datalist_get_data(&tcpipConfig, "port"), NULL);
+	}
+	
+	g_debug("TCP/IP plugin loaded and initialized");
 	return (TRUE);
 }
 
@@ -140,7 +152,7 @@ pluginReceive						(gpointer data)
 	/* Posix socket support */
 	#ifdef G_OS_UNIX
 		gint serverSd, clientSd, recvData, addrLen;
-		gchar buffer[bufferLen];
+		gchar buffer[BUFFERLEN];
 		struct sockaddr_in addr;
 		
 		addrLen = sizeof(struct sockaddr_in);
@@ -185,20 +197,12 @@ pluginReceive						(gpointer data)
 			}
 			
 			/* Gets data.
-			 * Unfortunately, at this time only one-time messaging
-			 * is supported. Streaming (establishing dedicated channels
-			 * for agile communication between devices like webcams
-			 * and external interfaces) are planned, but not implemented.
 			 * */
 			recvData = recv(clientSd, buffer, BUFFERLEN, 0);
 			
-			/* TODO
-			 * Convert client socket descriptor to file descriptor.
-			 * */
-			
 			/* Allocate message at the end of the queue.
 			 * */
-			g_async_queue_push(qMessages, buffer);
+			g_async_queue_push(qMessages, &buffer);
 			
 			close(clientSd);
 		}

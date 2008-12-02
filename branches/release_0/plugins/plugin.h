@@ -13,13 +13,16 @@
 /* Default plugin interface.
  * */
 
-const gchar*
+gushort
+pluginType							();
+
+gchar*
 pluginName							();
 
-const gchar*
+gchar*
 pluginDesc							();
 
-const gchar*
+gchar*
 pluginVersion						();
 
 gboolean
