@@ -7,7 +7,6 @@
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
 
-#include "error.h"
 #include "data.h"
  
 #ifdef G_OS_WIN32
@@ -17,6 +16,12 @@
 #ifdef G_OS_UNIX
 	#define G_MODULE_SUFFIX "so"
 #endif
+
+/* Error messages */
+#define CANNOTLOCATEDIR			"El directorio de los complementos no existe"
+#define NOPLUGINFILESAVAILABLE	"No hay archivos de complemento disponibles"
+#define CANNOTOPENCONFIGFILE	"El archivo de configuracion no pudo ser abierto"
+#define CANNOTOPENDIRECTORY		"Imposible abrir el directorio de complementos"
 
 /* Global variables
  * */
@@ -33,7 +38,7 @@ gboolean
 initPluginFiles				(GData** pluginConfig, gchar** error)
 {
 	directory = g_datalist_get_data(pluginConfig, "directory");
-
+	
 	/* Comprueba que el directorio de los modulos existe */
 	if (!g_file_test(directory, (G_FILE_TEST_EXISTS | G_FILE_TEST_IS_DIR)))
 	{

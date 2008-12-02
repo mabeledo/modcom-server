@@ -8,9 +8,16 @@
  ********************************************************************/
 
 #include "data.h"
-#include "error.h"
 
 #include "modulemanager.h"
+
+/* Error messages */
+#define	CANNOTLOADMODULES		"No se pueden cargar modulos dinamicamente"
+#define	NOMODULESAVAILABLE		"No hay modulos disponibles"
+#define NOMEMORYAVAILABLE		"No se ha podido reservar memoria"
+#define INCORRECTMODULEFORMAT	"El archivo no tiene formato de modulo"
+#define NOSYMBOLSAVAILABLE		"No es un plugin o no tiene una definicion estandar"
+#define FREEQUEUEFAILED			"La cola no ha sido liberada correctamente"
 
 /* Funcion initModules
  * Precondiciones:
@@ -39,9 +46,10 @@ initModules				(gchar** error)
  * Salida:
  * Proceso:
  * */
-gboolean
+static gboolean
 loadModule			(Plugin* plugin, gchar** error)
 {
+	gushort (*pluginType) (void);
 	gchar* (*pluginName) (void);
 	gchar* (*pluginDesc) (void);
 	gchar* (*pluginVersion) (void);
@@ -57,7 +65,8 @@ loadModule			(Plugin* plugin, gchar** error)
 		return (FALSE);
 	}
 	
-	if (!(g_module_symbol(plugin->module, "pluginName", (gpointer)&pluginName) &&
+	if (!(g_module_symbol(plugin->module, "pluginType", (gpointer)&pluginType) &&
+	    g_module_symbol(plugin->module, "pluginName", (gpointer)&pluginName) &&
 		g_module_symbol(plugin->module, "pluginDesc", (gpointer)&pluginDesc) &&
 		g_module_symbol(plugin->module, "pluginVersion", (gpointer)&pluginVersion) &&
 		g_module_symbol(plugin->module, "pluginInit", (gpointer)&pluginInit) &&
@@ -69,6 +78,7 @@ loadModule			(Plugin* plugin, gchar** error)
 		return (FALSE);
 	}
 	
+	plugin->pluginType = (gpointer)pluginType;
 	plugin->pluginName = (gpointer)pluginName;
 	plugin->pluginDesc = (gpointer)pluginDesc;
 	plugin->pluginVersion = (gpointer)pluginVersion;
@@ -97,23 +107,28 @@ gboolean
 loadAllModules			(GQueue* qPlugins, gchar** error)
 {
 	gint i;
-	gchar* pluginError;
+	gchar* moduleError;
 	Plugin* aux;
+	gint length;
 	
-	for (i = 0; i < g_queue_get_length(qPlugins); i++)
+	length = g_queue_get_length(qPlugins);
+	i = 0;
+	
+	while (i < length)
 	{
 		aux = g_queue_peek_nth(qPlugins, i);
-		if (!loadModule(aux, error))
+		
+		if (!loadModule(aux, &moduleError))
 		{
-			/* Si no es posible cargar el modulo, la estructura Plugin
-			 * es retirada de la cola */
 			aux = g_queue_pop_nth(qPlugins, i);
-			g_warning("Error al cargar modulo %s: %s", aux->filename, pluginError);
+			g_queue_remove(qPlugins, aux);
+			g_warning("Error loading module %s: %s", aux->filename, moduleError);
 			g_free(aux);
+			length--;
 		}
 		else
 		{
-			g_debug("%s cargado correctamente", aux->filename);
+			i++;
 		}
 	}
 

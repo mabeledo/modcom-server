@@ -8,7 +8,6 @@
  ********************************************************************/
 
 #include "data.h"
-#include "error.h"
 
 #include "configmanager.h"
 #include "pluginmanager.h"
@@ -16,7 +15,10 @@
 #include "receivemanager.h"
 #include "dispatchmanager.h"
 #include "basemanager.h"
-#include <glib/gprintf.h>
+
+/* Error messages */
+
+
 /* Funcion openComSystem
  * Precondiciones:
  * Postcondiciones:
@@ -37,7 +39,7 @@ openComSystem				(const gchar* configFile, gchar** error)
 	GData* pluginSetConfig;
 	GQueue* qPlugins;
 	GAsyncQueue* qMessages;
-
+	
 	/* All data in the configuration file is copied into a
 	 * GData structure, in order to handle configuration parameters
 	 * easily.
@@ -50,6 +52,7 @@ openComSystem				(const gchar* configFile, gchar** error)
 	
 	/* Gets per module configuration settings. */
 	pluginConfig = g_datalist_get_data(&dConfig, "plugins");
+	dispatchConfig = g_datalist_get_data(&dConfig, "dispatch");
 	
 	/* *
 	 * Segunda fase (comprobacion y ejecucion de procesos):
@@ -61,7 +64,7 @@ openComSystem				(const gchar* configFile, gchar** error)
 	if (!(initPluginFiles(&pluginConfig, error) &&
 		  initModules(error) &&
 		  initReceivers(error) &&
-		  initDispatcher(error)))
+		  initDispatcher(&dispatchConfig, error)))
 	{
 		return (FALSE);
 	}
@@ -83,13 +86,13 @@ openComSystem				(const gchar* configFile, gchar** error)
 	{
 		return (FALSE);
 	}
-
+	
 	/* DispatchManager inicia el proceso de reparto de mensajes de la
 	 * cola.
 	 * Receivemanager crea los hilos de ejecucion	 necesarios para la
 	 * recepcion asincrona de mensajes.
 	 * */
-	if (!loadDispatcher(qPlugins, qMessages, dispatchConfig, error))
+	if (!loadDispatcher(qPlugins, qMessages, error))
 	{
 		return (FALSE);
 	}
@@ -111,7 +114,7 @@ openComSystem				(const gchar* configFile, gchar** error)
  * NOT IMPLEMENTED
  * */
 gboolean
-closeComSystem				(gchar* error)
+closeComSystem				(gchar** error)
 {
 	return (TRUE);
 }

@@ -31,16 +31,6 @@ initModules				(gchar**);
 gboolean
 loadAllModules			(GQueue*, gchar**);
 
-/* Funcion loadModule.
- * Precondiciones:
- * Postcondiciones:
- * Entrada:
- * Salida:
- * Proceso:
- * */
-gboolean
-loadModule				(Plugin*, gchar**);
-
 /* Funcion unloadAllModules
  * Precondiciones:
  * Postcondiciones:

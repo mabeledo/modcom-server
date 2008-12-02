@@ -18,7 +18,7 @@
  * Proceso:
  * */
 gboolean
-initDispatcher					(gchar**);
+initDispatcher					(GData**, gchar**);
 
 /* Funcion loadDispatcher
  * Precondiciones:
@@ -28,6 +28,6 @@ initDispatcher					(gchar**);
  * Proceso:
  * */
 gboolean
-loadDispatcher					(GQueue*, GAsyncQueue*, GData*, gchar**);
+loadDispatcher					(GQueue*, GAsyncQueue*, gchar**);
 
 #endif

@@ -33,10 +33,10 @@ typedef struct _Plugin
 	
 	/* Manejados por modulemanager */
 	GModule*		module;
+	gushort			(*pluginType) 		(void);
 	const gchar* 	(*pluginName) 		(void);
 	const gchar* 	(*pluginDesc) 		(void);
 	const gchar* 	(*pluginVersion) 	(void);
-	const gchar* 	(*pluginProvides) 	(void);
 	void			(*pluginInit)		(gpointer, gchar**);
 	gpointer 		(*pluginSend) 		(gpointer, gchar**);
 	gpointer		(*pluginReceive) 	(gpointer);
@@ -51,9 +51,9 @@ typedef struct _Message
 {
 	/* Source protocol.
 	 * Available protocols:
-	 *   NULL   - 00000
-	 *   TCP/IP - 00001
-	 *   COM    - 00002
+	 *   NULL   - 1
+	 *   TCP/IP - 2
+	 *   COM    - 3
 	 * */
 	gushort srcProto;
 	
@@ -66,8 +66,22 @@ typedef struct _Message
 	/* Destination address. */
 	gchar dest[15];
 	
+	/* Type.
+	 * */
+	gushort type;
+	
+	/* ID */
+	gushort id;
+	
+	/* Part.
+	 * Available values:
+	 *   0 - Standalone message or end.
+	 *   >0 - Part of a bigger message.
+	 * */
+	gushort part;
+	
 	/* Message contents. */
-	gchar msg[952];
+	gchar msg[1024];
 	
 	/* MD5 checksum. */
 	gchar checksum[32];

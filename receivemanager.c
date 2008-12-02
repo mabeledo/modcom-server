@@ -8,10 +8,13 @@
  ********************************************************************/
 
 #include "data.h"
-#include "error.h"
 
 #include "receivemanager.h"
 
+/* Error messages */
+#define THREADSNOTSUPPORTED		"El sistema no soporta la creacion de hilos"
+#define NOTENOUGHTHREADS		"No se ha creado ningun thread"
+#define CANNOTCREATETHREAD		"No se ha podido crear el thread"
 
 /* Funcion initReceivers
  * Precondiciones:
