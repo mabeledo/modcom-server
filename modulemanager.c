@@ -50,12 +50,13 @@ static gboolean
 loadModule			(Plugin* plugin, gchar** error)
 {
 	gushort (*pluginType) (void);
-	gchar* (*pluginName) (void);
-	gchar* (*pluginDesc) (void);
-	gchar* (*pluginVersion) (void);
+	const gchar* (*pluginName) (void);
+	const gchar* (*pluginDesc) (void);
+	const gchar* (*pluginVersion) (void);
 	gboolean (*pluginInit) (gpointer data, gchar** error);
 	gboolean (*pluginSend) (gpointer data, gchar** error);
 	gpointer (*pluginReceive) (gpointer data);
+	gboolean (*pluginExit) (gchar** error);
 	
 	plugin->module = g_module_open(plugin->filename, G_MODULE_BIND_LOCAL);
 	
@@ -71,7 +72,8 @@ loadModule			(Plugin* plugin, gchar** error)
 		g_module_symbol(plugin->module, "pluginVersion", (gpointer)&pluginVersion) &&
 		g_module_symbol(plugin->module, "pluginInit", (gpointer)&pluginInit) &&
 		g_module_symbol(plugin->module, "pluginSend", (gpointer)&pluginSend) &&
-		g_module_symbol(plugin->module, "pluginReceive", (gpointer)&pluginReceive)))
+		g_module_symbol(plugin->module, "pluginReceive", (gpointer)&pluginReceive) &&
+		g_module_symbol(plugin->module, "pluginExit", (gpointer)&pluginExit)))
 	{
 		g_module_close(plugin->module);
 		*error = g_strdup(NOSYMBOLSAVAILABLE);
@@ -85,6 +87,7 @@ loadModule			(Plugin* plugin, gchar** error)
 	plugin->pluginInit = (gpointer)pluginInit;
 	plugin->pluginSend = (gpointer)pluginSend;
 	plugin->pluginReceive = (gpointer)pluginReceive;
+	plugin->pluginExit = (gpointer)pluginExit;
 	
 	/* Initialize module.
 	 * The first parameter is a GData filled with the plugin configuration

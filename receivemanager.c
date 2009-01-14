@@ -73,30 +73,32 @@ loadReceiver					(Plugin* plugin, GAsyncQueue* qMessages, gchar** error)
  * Salida: Cola de hilos creados, mensaje de error
  * Proceso: Inicia los hilos necesarios para cada uno de los complementos cargados.
  * */
-gboolean
-loadAllReceivers				(GQueue* qPlugins, GAsyncQueue* qMessages, gchar** error)
+gpointer
+loadAllReceivers				(gpointer data)
 {
 	Plugin* auxPlugin;
+	ThreadData* tData;
 	gchar* threadError;
 	gint i;
 	
+	tData = data;
+
 	/* Crea los hilos para las funciones de envío */
-	for (i = 0; i < g_queue_get_length(qPlugins); i++)
+	for (i = 0; i < g_queue_get_length(tData->qPlugins); i++)
 	{
 		/* Rellena la estructura de datos para el hilo */
-		if (!(loadReceiver((Plugin*)g_queue_peek_nth(qPlugins, i), qMessages, &threadError)))
+		if (!(loadReceiver((Plugin*)g_queue_peek_nth(tData->qPlugins, i), tData->qMessages, &threadError)))
 		{
-			*error = g_strdup(threadError);
-			return (FALSE);
+			return (threadError);
 		}
 	}
 	
 	/* Waits for every thread previously created */
-	for (i = 0; i < g_queue_get_length(qPlugins); i++)
+	for (i = 0; i < g_queue_get_length(tData->qPlugins); i++)
 	{
-		auxPlugin = (Plugin*)g_queue_peek_nth(qPlugins, i);
+		auxPlugin = (Plugin*)g_queue_peek_nth(tData->qPlugins, i);
 		g_thread_join(auxPlugin->receiveThread);
 	}
 
-	return (TRUE);
+	return (NULL);
 }

@@ -27,7 +27,7 @@ initDispatcher					(GData**, gchar**);
  * Salida:
  * Proceso:
  * */
-gboolean
-loadDispatcher					(GQueue*, GAsyncQueue*, gchar**);
+gpointer
+loadDispatcher					(gpointer);
 
 #endif

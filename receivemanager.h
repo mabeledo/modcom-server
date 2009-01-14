@@ -27,8 +27,8 @@ initReceivers					(gchar**);
  * Salida: 
  * Proceso: 
  * */
-gboolean
-loadAllReceivers				(GQueue*, GAsyncQueue*, gchar**);
+gpointer
+loadAllReceivers				(gpointer);
 
 #endif
 
