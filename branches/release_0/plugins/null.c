@@ -20,19 +20,19 @@ pluginType							()
 	return ((gushort)PLUGINTYPE);
 }
 
-gchar*
+const gchar*
 pluginName							()
 {
 	return (PLUGINNAME);
 }
 
-gchar*
+const gchar*
 pluginDesc							()
 {
 	return (PLUGINDESC);
 }
 
-gchar*
+const gchar*
 pluginVersion						()
 {
 	return (PLUGINVERSION);
@@ -55,6 +55,12 @@ gpointer
 pluginReceive						(gpointer data)
 {
 	return (NULL);
+}
+
+gboolean
+pluginExit							(gchar** error)
+{
+	return (TRUE);
 }
 
 /*

@@ -13,6 +13,7 @@
 #include <gmodule.h>
 
 #define MODCOM_SERVER_VERSION		"0.1"
+#define END_OF_DATA					"^END"
 
 /* Estructura de los complementos
  *  - filename: nombre del complemento.
@@ -37,14 +38,14 @@ typedef struct _Plugin
 	const gchar* 	(*pluginName) 		(void);
 	const gchar* 	(*pluginDesc) 		(void);
 	const gchar* 	(*pluginVersion) 	(void);
-	void			(*pluginInit)		(gpointer, gchar**);
-	gpointer 		(*pluginSend) 		(gpointer, gchar**);
+	gboolean		(*pluginInit)		(gpointer, gchar**);
+	gboolean 		(*pluginSend) 		(gpointer, gchar**);
 	gpointer		(*pluginReceive) 	(gpointer);
+	gboolean 		(*pluginExit) 		(gchar**);
 	
 	/* Manejados por threadmanager */
 	GThread*		receiveThread;
 } Plugin;
-
 
 /* Struct for receiving/sending messages. */
 typedef struct _Message
@@ -53,7 +54,8 @@ typedef struct _Message
 	 * Available protocols:
 	 *   NULL   - 1
 	 *   TCP/IP - 2
-	 *   COM    - 3
+	 *   FILE   - 3
+	 *   COM    - 4
 	 * */
 	gushort srcProto;
 	
@@ -81,8 +83,19 @@ typedef struct _Message
 	gushort part;
 	
 	/* Message contents. */
-	gchar msg[1024];
+	gchar data[1024];
 	
 	/* MD5 checksum. */
 	gchar checksum[32];
 } Message;
+
+
+/*
+ * Struct containing all data needed for creating receive or
+ * dispatch threads. 
+ * */
+typedef struct _ThreadData
+{
+	GQueue* qPlugins;
+	GAsyncQueue* qMessages;
+} ThreadData;

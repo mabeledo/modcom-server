@@ -17,7 +17,8 @@
 #include "basemanager.h"
 
 /* Error messages */
-
+#define DISPATCHERROR	"Unable to initialize the dispatcher"
+#define RECEIVEERROR	"Unable to initialize all receivers"
 
 /* Funcion openComSystem
  * Precondiciones:
@@ -29,7 +30,7 @@
 gboolean
 openComSystem				(const gchar* configFile, gchar** error)
 {
-	/* Memory allocation is done here, to avoid local issues or
+	/* Memory allocation is done here to avoid local issues or
 	 * automatic deallocation after function exit.
 	 * */
 	GData* dConfig;
@@ -37,8 +38,14 @@ openComSystem				(const gchar* configFile, gchar** error)
 	GData* moduleConfig;
 	GData* dispatchConfig;
 	GData* pluginSetConfig;
+	
 	GQueue* qPlugins;
 	GAsyncQueue* qMessages;
+	ThreadData* tData;
+	
+	GThread* dispatchThread;
+	GThread* receiveThread;
+	GError* threadError;
 	
 	/* All data in the configuration file is copied into a
 	 * GData structure, in order to handle configuration parameters
@@ -76,6 +83,9 @@ openComSystem				(const gchar* configFile, gchar** error)
 	/* Inicializa la cola de plugins y de mensajes. */
 	qPlugins = g_queue_new();
 	qMessages = g_async_queue_new();
+	tData = g_new0(ThreadData, 1);
+	tData->qPlugins = qPlugins;
+	tData->qMessages = qMessages;
 	
 	/* Se inicializan las estructuras de plugins.
 	 *  - Explora el directorio de plugins y carga los ficheros.
@@ -87,20 +97,38 @@ openComSystem				(const gchar* configFile, gchar** error)
 		return (FALSE);
 	}
 	
-	/* DispatchManager inicia el proceso de reparto de mensajes de la
-	 * cola.
-	 * Receivemanager crea los hilos de ejecucion	 necesarios para la
-	 * recepcion asincrona de mensajes.
+	/* DispatchManager manages the message dispatching process.
+	 * ReceiveManager creates execution threads needed for asynchronous
+	 * message reception.
 	 * */
-	if (!loadDispatcher(qPlugins, qMessages, error))
+	
+	if ((dispatchThread = g_thread_create((GThreadFunc)&loadDispatcher,
+										  (gpointer)tData, TRUE, &threadError)) == NULL)
 	{
+		*error = g_strconcat(DISPATCHERROR, "\nReturned value: ",
+											(gchar*)dispatchThread,
+											"\nError message: ",
+											(gchar*)threadError->message,
+											NULL);
 		return (FALSE);
 	}
 	
-	if (!loadAllReceivers(qPlugins, qMessages, error))
+	if ((receiveThread = g_thread_create((GThreadFunc)&loadAllReceivers,
+										  (gpointer)tData, TRUE, &threadError)) == NULL)
 	{
+		*error = g_strconcat(RECEIVEERROR, "\nReturned value: ",
+											(gchar*)receiveThread,
+											"\nError message: ",
+											(gchar*)threadError->message,
+											NULL);
 		return (FALSE);
 	}
+	
+	/* Waits for both threads.
+	 * Currently, returned values are ignored.
+	 * */
+	g_thread_join(receiveThread);
+	g_thread_join(dispatchThread);
 	
 	return (TRUE);
 }

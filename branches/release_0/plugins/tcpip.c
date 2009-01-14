@@ -30,7 +30,7 @@
 /* Global variables.
  * These might be defined in the configuration file.
  * */
-gint listenPort = LISTENPORT;
+static gint listenPort = LISTENPORT;
 
 gushort
 pluginType							()
@@ -38,19 +38,19 @@ pluginType							()
 	return ((gushort)PLUGINTYPE);
 }
 
-gchar*
+const gchar*
 pluginName							()
 {
 	return (PLUGINNAME);
 }
 
-gchar*
+const gchar*
 pluginDesc							()
 {
 	return (PLUGINDESC);
 }
 
-gchar*
+const gchar*
 pluginVersion						()
 {
 	return (PLUGINVERSION);
@@ -154,8 +154,11 @@ pluginReceive						(gpointer data)
 		gint serverSd, clientSd, recvData, addrLen;
 		gchar buffer[BUFFERLEN];
 		struct sockaddr_in addr;
+		Message* msg;
+		gboolean receiving;
 		
 		addrLen = sizeof(struct sockaddr_in);
+		receiving = TRUE;
 		
 		if ((serverSd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		{
@@ -184,8 +187,8 @@ pluginReceive						(gpointer data)
 		
 		g_debug("TCP/IP Plugin up, running and accepting new connections...");
 		
-		/* Endless loop accepting incoming connections. */
-		while (TRUE)
+		/* Loop accepting incoming connections. */
+		while (receiving)
 		{
 			/* Accepts client connections */
 			clientSd = accept(serverSd, (struct sockaddr *)&addr, (guint32 *)&addrLen);
@@ -196,14 +199,22 @@ pluginReceive						(gpointer data)
 				return ((gpointer)error);
 			}
 			
-			/* Gets data.
-			 * */
+			/* Gets data. */
 			recvData = recv(clientSd, buffer, BUFFERLEN, 0);
+			msg = (Message*)buffer;
 			
-			/* Allocate message at the end of the queue.
+			/* Standalone message with END_OF_DATA flag set up in data field,
+			 * causes the thread to exit. Otherwise, data is added to queue.
 			 * */
-			g_async_queue_push(qMessages, &buffer);
-			
+			if ((msg->part == 0) && (g_ascii_strcasecmp(msg->data, END_OF_DATA) == 0))
+			{
+				receiving = FALSE;
+			}
+			else
+			{
+				g_async_queue_push(qMessages, &buffer);	
+			}
+
 			close(clientSd);
 		}
 	#endif
@@ -216,6 +227,12 @@ pluginReceive						(gpointer data)
 	/* Clean and exit. */
 	g_async_queue_unref(qMessages);
 	return (NULL);
+}
+
+gboolean
+pluginExit							(gchar** error)
+{
+	return (TRUE);
 }
 
 /*

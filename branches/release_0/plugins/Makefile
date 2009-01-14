@@ -16,4 +16,12 @@ null:
 tcpip:
 	$(CC) $(CFLAGS) tcpip.c
 	$(CC) $(LDFLAGS)libtcpip.so.1 -o tcpip.so tcpip.o 
+
+file:
+	$(CC) $(CFLAGS) file.c
+	$(CC) $(LDFLAGS)libfile.so.1 -o file.so file.o 
+
+com:
+	$(CC) $(CFLAGS) com.c
+	$(CC) $(LDFLAGS)libcom.so.1 -o com.so com.o 
 	

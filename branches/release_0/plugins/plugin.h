@@ -16,13 +16,13 @@
 gushort
 pluginType							();
 
-gchar*
+const gchar*
 pluginName							();
 
-gchar*
+const gchar*
 pluginDesc							();
 
-gchar*
+const gchar*
 pluginVersion						();
 
 gboolean
@@ -33,6 +33,9 @@ pluginSend							(gpointer, gchar**);
 
 gpointer
 pluginReceive						(gpointer);
+
+gboolean
+pluginExit							(gchar**);
 
 /*
  * VERSION 0.1

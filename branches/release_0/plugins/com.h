@@ -1,40 +1,33 @@
 /********************************************************************
- *             Sistema modular de comunicación con un robot móvil.
- *                     Modulo de comunicacion puerto COM
+ *  Proyecto: Sistema modular de comunicacion con un robot movil
+ *  Subproyecto: Servidor
+ *  Archivo: plugins/com.h
+ * 	Version: 0.1
  *
- *                        Manuel Angel Abeledo Garcia
+ *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
+#ifndef COM_H
+#define COM_H
 
-#ifdef G_OS_UNIX
-	#define io_channel_new_fd(fd) g_io_channel_unix_new(fd)
-#elif
-	#ifdef G_OS_WIN32
-		#define io_channel_new_fd(fd) g_io_channel_win32_new_fd(fd)
-	#endif
+#include "plugin.h"
+
+#ifdef G_OS_WIN32
+
 #endif
 
-/* Funcion com_recibir.
- * Maneja mensajes entrantes (COM) y los envia a la cola.
- * Argumentos:
- *	- datos, un puntero a una estructura de tipo DATOS_MODULOS.
- * Devuelve:
- * 	- Un puntero a un mensaje de estado.
- * */
+#ifdef G_OS_UNIX
+	#include <sys/types.h>
+	#include <sys/stat.h>
+	#include <strings.h>
+	#include <unistd.h>
+	#include <fcntl.h>
+	#include <termios.h>
+	#include <stdio.h>
+#endif
 
-gpointer
-com_recibir									(gpointer);
-
-/* Funcion com_enviar.
- * Maneja mensajes salientes (COM) y los envia a su destino.
- * Argumentos:
- *	- datos, un puntero a una estructura de tipo MENSAJE_INT.
- * Devuelve:
- * 	- Un puntero a un mensaje de estado.
- * */
-
-gpointer
-com_enviar									(gpointer);
-
+#endif
 /*
  * VERSION 0.1
  * */
+
+
