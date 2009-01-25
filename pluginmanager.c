@@ -7,6 +7,7 @@
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
 
+#include "general.h"
 #include "data.h"
  
 #ifdef G_OS_WIN32
@@ -22,6 +23,11 @@
 #define NOPLUGINFILESAVAILABLE	"No hay archivos de complemento disponibles"
 #define CANNOTOPENCONFIGFILE	"El archivo de configuracion no pudo ser abierto"
 #define CANNOTOPENDIRECTORY		"Imposible abrir el directorio de complementos"
+#define	CANNOTLOADMODULES		"No se pueden cargar modulos dinamicamente"
+#define NOMEMORYAVAILABLE		"No se ha podido reservar memoria"
+#define INCORRECTMODULEFORMAT	"El archivo no tiene formato de modulo"
+#define NOSYMBOLSAVAILABLE		"No es un plugin o no tiene una definicion estandar"
+#define FREEQUEUEFAILED			"La cola no ha sido liberada correctamente"
 
 /* Global variables
  * */
@@ -35,19 +41,92 @@ gchar* directory;
  * Proceso:
  * */
 gboolean
-initPluginFiles				(GData** pluginConfig, gchar** error)
+initPlugins					(GData** pluginConfig, gchar** error)
 {
 	directory = g_datalist_get_data(pluginConfig, "directory");
 	
-	/* Comprueba que el directorio de los modulos existe */
+	/* Checks for plugin directory. */
 	if (!g_file_test(directory, (G_FILE_TEST_EXISTS | G_FILE_TEST_IS_DIR)))
 	{
 		*error = g_strdup(CANNOTLOCATEDIR);
 		return (FALSE);
 	}
+	
+	/* Checks for dynamically loaded modules support. */
+	if (!g_module_supported())
+	{
+		*error = g_strdup(CANNOTLOADMODULES);
+		return (FALSE);
+	}
 
 	return (TRUE);
 }
+
+/* Funcion loadPlugin.
+ * Precondiciones:
+ * Postcondiciones:
+ * Entrada:
+ * Salida:
+ * Proceso:
+ * */
+static Plugin*
+loadPlugin			(const gchar* fileName, GData* config, gchar** error)
+{
+	Plugin* plugin;
+	
+	gushort (*pluginType) (void);
+	const gchar* (*pluginName) (void);
+	const gchar* (*pluginDesc) (void);
+	const gchar* (*pluginVersion) (void);
+	gboolean (*pluginInit) (gpointer data, gchar** error);
+	gboolean (*pluginSend) (gpointer data, gchar** error);
+	gpointer (*pluginReceive) (gpointer data);
+	gboolean (*pluginExit) (gchar** error);
+	
+	plugin = g_new0(Plugin, 1);
+	plugin->filename = g_strdup(fileName);
+	plugin->config = g_memdup(config, sizeof(config));
+
+	plugin->module = g_module_open(plugin->filename, G_MODULE_BIND_LOCAL);
+	
+	if (plugin->module == NULL)
+	{
+		*error = g_strdup(INCORRECTMODULEFORMAT);
+		return (NULL);
+	}
+	
+	if (!(g_module_symbol(plugin->module, "pluginType", (gpointer)&pluginType) &&
+	    g_module_symbol(plugin->module, "pluginName", (gpointer)&pluginName) &&
+		g_module_symbol(plugin->module, "pluginDesc", (gpointer)&pluginDesc) &&
+		g_module_symbol(plugin->module, "pluginVersion", (gpointer)&pluginVersion) &&
+		g_module_symbol(plugin->module, "pluginInit", (gpointer)&pluginInit) &&
+		g_module_symbol(plugin->module, "pluginSend", (gpointer)&pluginSend) &&
+		g_module_symbol(plugin->module, "pluginReceive", (gpointer)&pluginReceive) &&
+		g_module_symbol(plugin->module, "pluginExit", (gpointer)&pluginExit)))
+	{
+		g_module_close(plugin->module);
+		*error = g_strdup(NOSYMBOLSAVAILABLE);
+		return (NULL);
+	}
+	
+	plugin->pluginType = (gpointer)pluginType;
+	plugin->pluginName = (gpointer)pluginName;
+	plugin->pluginDesc = (gpointer)pluginDesc;
+	plugin->pluginVersion = (gpointer)pluginVersion;
+	plugin->pluginInit = (gpointer)pluginInit;
+	plugin->pluginSend = (gpointer)pluginSend;
+	plugin->pluginReceive = (gpointer)pluginReceive;
+	plugin->pluginExit = (gpointer)pluginExit;
+	
+	/* Initialize module.
+	 * The first parameter is a GData filled with the plugin configuration
+	 * options.
+	 * */
+	plugin->pluginInit((gpointer)plugin->config, error);
+
+	return (plugin);
+}
+
 
 /* Funcion loadAllPluginFiles
  * Precondiciones:
@@ -57,12 +136,13 @@ initPluginFiles				(GData** pluginConfig, gchar** error)
  * Proceso:
  * */
 gboolean
-loadAllPluginFiles			(GQueue* qPlugins, GData** pluginSetConfig, gchar** error)
+loadAllPlugins				(GQueue* qPlugins, GData** pluginSetConfig, gchar** error)
 {
 	GDir* pluginDir;
 	gchar* dirEntry;
 	gchar* configEntry;
-	Plugin* aux;
+	GData* pluginConfig;
+	Plugin* plugin;
 
 	/* Se supondra que los modulos se encuentran en un directorio
 	 * especifico.
@@ -82,11 +162,17 @@ loadAllPluginFiles			(GQueue* qPlugins, GData** pluginSetConfig, gchar** error)
 			 * indicar que es el ultimo parametro de la lista variable
 			 * */
 			configEntry = g_strsplit(dirEntry, ".", 2)[0];
+			pluginConfig = g_datalist_get_data(pluginSetConfig, configEntry);
 			dirEntry = g_strconcat(directory, "/", dirEntry, NULL);
-			aux = g_new0(Plugin, 1);
-			aux->filename = g_strdup(dirEntry);
-			aux->config = g_datalist_get_data(pluginSetConfig, configEntry);
-			g_queue_push_head(qPlugins, aux);
+			
+			if ((plugin = loadPlugin(dirEntry, pluginConfig, error)) == NULL)
+			{
+				return (FALSE);
+			}
+			else
+			{
+				g_queue_push_head(qPlugins, plugin);
+			}
 		}
 	}
 	
@@ -100,4 +186,3 @@ loadAllPluginFiles			(GQueue* qPlugins, GData** pluginSetConfig, gchar** error)
 	
 	return (TRUE);
 }
-

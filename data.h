@@ -9,11 +9,7 @@
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
 
-#include <glib.h>
-#include <gmodule.h>
-
-#define MODCOM_SERVER_VERSION		"0.1"
-#define END_OF_DATA					"^END"
+#include "header.h"
 
 /* Estructura de los complementos
  *  - filename: nombre del complemento.
@@ -46,6 +42,9 @@ typedef struct _Plugin
 	/* Manejados por threadmanager */
 	GThread*		receiveThread;
 } Plugin;
+
+
+#define END_OF_DATA					"^END"
 
 /* Struct for receiving/sending messages. */
 typedef struct _Message

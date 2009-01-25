@@ -7,12 +7,12 @@
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
 
+#include "general.h"
 #include "data.h"
 
 #include "receivemanager.h"
 
 /* Error messages */
-#define THREADSNOTSUPPORTED		"El sistema no soporta la creacion de hilos"
 #define NOTENOUGHTHREADS		"No se ha creado ningun thread"
 #define CANNOTCREATETHREAD		"No se ha podido crear el thread"
 
@@ -20,23 +20,13 @@
  * Precondiciones:
  * Postcondiciones:
  * Entrada:
- * Salida: Puntero a mensaje de error.
- * Proceso: Comprueba que el sistema soporta hilos.
+ * Salida:
+ * Proceso:
  * */
 gboolean
 initReceivers					(gchar** error)
 {
-	#ifdef G_THREADS_ENABLED
-		if (!g_thread_supported())
-		{
-			g_thread_init(NULL);
-		}
-
-		return (TRUE);
-	#else
-		*error = g_strdup(THREADSNOTSUPPORTED);
-		return (FALSE);
-	#endif
+	return (TRUE);
 }
 
 /* Funcion loadReceiver
@@ -46,7 +36,7 @@ initReceivers					(gchar** error)
  * Salida: Puntero a un mensaje de error.
  * Proceso: Inicia los hilos necesarios para un complemento.
  * */
-gboolean
+static gboolean
 loadReceiver					(Plugin* plugin, GAsyncQueue* qMessages, gchar** error)
 {
 	GError* threadError = NULL;

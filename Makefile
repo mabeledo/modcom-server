@@ -4,7 +4,7 @@
 CC=gcc -Wall
 CFLAGS=`pkg-config --cflags glib-2.0` `pkg-config --cflags gmodule-2.0` `pkg-config --cflags gthread-2.0` -c
 LDFLAGS=`pkg-config --libs glib-2.0` `pkg-config --libs gmodule-2.0` `pkg-config --libs gthread-2.0`
-SOURCES=basemanager.c receivemanager.c configmanager.c modulemanager.c pluginmanager.c dispatchmanager.c modcom-server.c 
+SOURCES=basemanager.c receivemanager.c configmanager.c pluginmanager.c dispatchmanager.c modcom-server.c 
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=modcom-server
 

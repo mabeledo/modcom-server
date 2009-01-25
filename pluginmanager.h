@@ -18,9 +18,9 @@
  * Proceso:
  * */
 gboolean
-initPluginFiles				(GData**, gchar**);
+initPlugins					(GData**, gchar**);
 
-/* Funcion loadAllPluginFiles
+/* Funcion loadAllPlugins
  * Precondiciones:
  * Postcondiciones:
  * Entrada:
@@ -28,6 +28,6 @@ initPluginFiles				(GData**, gchar**);
  * Proceso:
  * */
 gboolean
-loadAllPluginFiles			(GQueue*, GData**, gchar**);
+loadAllPlugins				(GQueue*, GData**, gchar**);
 
 #endif

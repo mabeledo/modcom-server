@@ -20,16 +20,6 @@
 gboolean
 initConfigFile				(const gchar*, gchar**);
 
-/* Funcion getGroupSetLength
- * Precondiciones:
- * Postcondiciones:
- * Entrada:
- * Salida:
- * Proceso:
- * */
-gint
-getGroupSetLength			(const gchar*, gchar**);
-
 /* Funcion loadConfigFile
  * Precondiciones:
  * Postcondiciones:
