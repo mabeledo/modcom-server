@@ -7,18 +7,19 @@
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
 
+#include "general.h"
 #include "data.h"
 
 #include "configmanager.h"
 #include "pluginmanager.h"
-#include "modulemanager.h"
 #include "receivemanager.h"
 #include "dispatchmanager.h"
 #include "basemanager.h"
 
 /* Error messages */
-#define DISPATCHERROR	"Unable to initialize the dispatcher"
-#define RECEIVEERROR	"Unable to initialize all receivers"
+#define THREADSNOTSUPPORTED	"Threads not supported"
+#define DISPATCHERROR		"Unable to initialize the dispatcher"
+#define RECEIVEERROR		"Unable to initialize all receivers"
 
 /* Funcion openComSystem
  * Precondiciones:
@@ -47,6 +48,16 @@ openComSystem				(const gchar* configFile, gchar** error)
 	GThread* receiveThread;
 	GError* threadError;
 	
+	#ifdef G_THREADS_ENABLED
+		if (!g_thread_supported())
+		{
+			g_thread_init(NULL);
+		}
+	#else
+		*error = g_strdup(THREADSNOTSUPPORTED);
+		return (FALSE);
+	#endif
+	
 	/* All data in the configuration file is copied into a
 	 * GData structure, in order to handle configuration parameters
 	 * easily.
@@ -68,8 +79,7 @@ openComSystem				(const gchar* configFile, gchar** error)
 	 *  - El sistema puede utilizar hilos de ejecucion.
 	 *  - (Initdispatcher)
 	 * */
-	if (!(initPluginFiles(&pluginConfig, error) &&
-		  initModules(error) &&
+	if (!(initPlugins(&pluginConfig, error) &&
 		  initReceivers(error) &&
 		  initDispatcher(&dispatchConfig, error)))
 	{
@@ -91,8 +101,7 @@ openComSystem				(const gchar* configFile, gchar** error)
 	 *  - Explora el directorio de plugins y carga los ficheros.
 	 *  - Carga las funciones en las estructuras de plugin correspondientes.
 	 * */
-	if (!(loadAllPluginFiles(qPlugins, &dConfig, error) &&
-		  loadAllModules(qPlugins, error)))
+	if (!loadAllPlugins(qPlugins, &dConfig, error))
 	{
 		return (FALSE);
 	}

@@ -7,6 +7,7 @@
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
 
+#include "general.h"
 #include "data.h"
 
 /* Error messages */
