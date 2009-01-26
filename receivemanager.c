@@ -8,7 +8,8 @@
  ********************************************************************/
 
 #include "general.h"
-#include "data.h"
+#include "plugin.h"
+#include "thread.h"
 
 #include "receivemanager.h"
 

@@ -9,7 +9,7 @@
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
 
-#include "header.h"
+//#include "header.h"
 
 /* Estructura de los complementos
  *  - filename: nombre del complemento.
@@ -96,5 +96,5 @@ typedef struct _Message
 typedef struct _ThreadData
 {
 	GQueue* qPlugins;
-	GAsyncQueue* qMessages;
 } ThreadData;
+	GAsyncQueue* qMessages;

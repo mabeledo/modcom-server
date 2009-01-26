@@ -8,7 +8,6 @@
  ********************************************************************/
 
 #include "general.h"
-#include "data.h"
 
 /* Error messages */
 #define CANNOTINITIALIZEPARSER	"No se puede inicializar el analizador de configuracion"

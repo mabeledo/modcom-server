@@ -8,7 +8,9 @@
  ********************************************************************/
 
 #include "general.h"
-#include "data.h"
+#include "thread.h"
+#include "msg.h"
+#include "plugin.h"
 
 #include "dispatchmanager.h"
 
