@@ -8,7 +8,7 @@
  ********************************************************************/
 
 #include "general.h"
-#include "data.h"
+#include "plugin.h"
  
 #ifdef G_OS_WIN32
 	#define G_MODULE_SUFFIX "dll"

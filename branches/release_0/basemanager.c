@@ -8,7 +8,7 @@
  ********************************************************************/
 
 #include "general.h"
-#include "data.h"
+#include "thread.h"
 
 #include "configmanager.h"
 #include "pluginmanager.h"
