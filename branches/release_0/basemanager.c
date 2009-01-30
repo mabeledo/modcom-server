@@ -29,7 +29,7 @@
  * Proceso: 
  * */
 gboolean
-openComSystem				(const gchar* configFile, gchar** error)
+initBaseSystem				(const gchar* configFile, gchar** error)
 {
 	/* Memory allocation is done here to avoid local issues or
 	 * automatic deallocation after function exit.
@@ -114,7 +114,7 @@ openComSystem				(const gchar* configFile, gchar** error)
 	if ((dispatchThread = g_thread_create((GThreadFunc)&loadDispatcher,
 										  (gpointer)tData, TRUE, &threadError)) == NULL)
 	{
-		*error = g_strconcat(DISPATCHERROR, "\nReturned value: ",
+		*error = (char*)g_strconcat(DISPATCHERROR, "\nReturned value: ",
 											(gchar*)dispatchThread,
 											"\nError message: ",
 											(gchar*)threadError->message,
@@ -125,7 +125,7 @@ openComSystem				(const gchar* configFile, gchar** error)
 	if ((receiveThread = g_thread_create((GThreadFunc)&loadAllReceivers,
 										  (gpointer)tData, TRUE, &threadError)) == NULL)
 	{
-		*error = g_strconcat(RECEIVEERROR, "\nReturned value: ",
+		*error = (char*)g_strconcat(RECEIVEERROR, "\nReturned value: ",
 											(gchar*)receiveThread,
 											"\nError message: ",
 											(gchar*)threadError->message,
@@ -151,7 +151,7 @@ openComSystem				(const gchar* configFile, gchar** error)
  * NOT IMPLEMENTED
  * */
 gboolean
-closeComSystem				(gchar** error)
+closeBaseSystem				(gchar** error)
 {
 	return (TRUE);
 }
