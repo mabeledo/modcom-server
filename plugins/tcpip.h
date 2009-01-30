@@ -9,7 +9,7 @@
 #ifndef TCPIP_H
 #define TCPIP_H
 
-#include "plugin.h"
+#include "interface.h"
 
 /* Winsocket support */
 #ifdef G_OS_WIN32

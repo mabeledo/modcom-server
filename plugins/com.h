@@ -9,7 +9,7 @@
 #ifndef COM_H
 #define COM_H
 
-#include "plugin.h"
+#include "interface.h"
 
 #ifdef G_OS_WIN32
 

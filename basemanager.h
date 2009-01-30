@@ -12,7 +12,7 @@
 #ifndef BASEMANAGER_H
 #define BASEMANAGER_H
 
-/* Funcion initComSystem
+/* Funcion openComSystem
  * Precondiciones:
  * Postcondiciones:
  * Entrada: 
@@ -20,7 +20,7 @@
  * Proceso: 
  * */
 gboolean
-openComSystem				(const gchar*, gchar**);
+initBaseSystem				(const gchar*, gchar**);
 
 /* Funcion closeComSystem
  * Precondiciones:
@@ -30,7 +30,7 @@ openComSystem				(const gchar*, gchar**);
  * Proceso: 
  * */
 gboolean
-closeComSystem				(gchar**);
+closeBaseSystem				(gchar**);
 
 #endif
 

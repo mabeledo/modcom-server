@@ -9,7 +9,7 @@
 #ifndef FILE_H
 #define FILE_H
 
-#include "plugin.h"
+#include "interface.h"
 
 /* Win32 file change notification support */
 #ifdef G_OS_WIN32

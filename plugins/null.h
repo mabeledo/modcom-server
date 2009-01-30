@@ -9,7 +9,7 @@
 #ifndef NULL_H
 #define NULL_H
 
-#include "plugin.h"
+#include "interface.h"
 
 #endif
 /*

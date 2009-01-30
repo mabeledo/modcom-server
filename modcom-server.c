@@ -101,10 +101,10 @@ main				(int argc, char *argv[])
 	}
 	
 	/* Proceso */
-	if (!openComSystem(optConfig, &returnError))
+	if (!initBaseSystem(optConfig, &returnError))
 	{
 		g_critical("%s", returnError);
-		return (-3);
+		return (-3);	
 	}
 	
 	g_print("Parent process done...\n");

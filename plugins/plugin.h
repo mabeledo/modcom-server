@@ -7,8 +7,8 @@
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
 
-#include <glib.h>
-#include "../data.h"
+#include "../general.h"
+#include "../msg.h"
 
 /* Default plugin interface.
  * */
