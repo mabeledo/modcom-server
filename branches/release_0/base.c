@@ -10,11 +10,10 @@
 #include "general.h"
 #include "thread.h"
 
-#include "configmanager.h"
-#include "pluginmanager.h"
-#include "receivemanager.h"
-#include "dispatchmanager.h"
-#include "basemanager.h"
+#include "config.h"
+#include "loader.h"
+#include "receiver.h"
+#include "dispatcher.h"
 
 /* Error messages */
 #define THREADSNOTSUPPORTED	"Threads not supported"

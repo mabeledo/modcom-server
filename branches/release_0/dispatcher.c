@@ -12,8 +12,6 @@
 #include "msg.h"
 #include "plugin.h"
 
-#include "dispatchmanager.h"
-
 /* Error messages */
 #define CANNOTSENDDATA			"Imposible enviar datos con el complemento"
 #define CANNOTLOADDISPATCHER	"Imposible enviar datos con el complemento"

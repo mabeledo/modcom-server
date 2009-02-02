@@ -8,10 +8,8 @@
  ********************************************************************/
 
 #include "general.h"
-#include "plugin.h"
 #include "thread.h"
-
-#include "receivemanager.h"
+#include "plugin.h"
 
 /* Error messages */
 #define NOTENOUGHTHREADS		"No se ha creado ningun thread"
