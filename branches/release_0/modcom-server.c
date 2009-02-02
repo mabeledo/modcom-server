@@ -9,7 +9,7 @@
 
 #include <glib.h>
 
-#include "basemanager.h"
+#include "base.h"
 
 #define MODCOM_SERVER_VERSION	"0.1"
 
