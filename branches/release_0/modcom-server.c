@@ -12,6 +12,7 @@
 #include "base.h"
 
 #define MODCOM_SERVER_VERSION	"0.1"
+#define MODCOM_CFG				"modcom.cfg"
 
 /* Funcion main
  * Precondiciones:
@@ -33,7 +34,7 @@ main				(int argc, char *argv[])
 	gboolean optVersion = FALSE;
 	GError* error = NULL;
 	gchar* returnError = "";
-	gchar* optConfig = "modcom-server.cfg";
+	gchar* optConfig = MODCOM_CFG;
 	gint i = 0;
 
 	GOptionEntry options[] = 
@@ -67,7 +68,7 @@ main				(int argc, char *argv[])
 		return(0);
 	}
 
-	if (!g_str_equal(optConfig, "modcom-server.cfg"))
+	if (!g_str_equal(optConfig, MODCOM_CFG))
 	{
 		g_debug("Nuevo archivo de configuracion: %s", optConfig);
 	}
@@ -106,7 +107,10 @@ main				(int argc, char *argv[])
 		g_critical("%s", returnError);
 		return (-3);	
 	}
-	
+	for (;;)
+	{
+		i++;
+	}
 	g_print("Parent process done...\n");
 	return(0);
 }

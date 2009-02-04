@@ -18,7 +18,7 @@
  * Proceso: 
  * */
 gboolean
-initReceivers					(gchar**);
+initReceivers					(GData**, gchar**);
 
 /* Funcion loadAllReceivers
  * Precondiciones:

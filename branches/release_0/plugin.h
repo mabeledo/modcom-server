@@ -9,19 +9,20 @@
 
 typedef struct _Plugin
 {
-        gchar*                  filename;
-        GData*                  config;
+        gchar*              filename;
+        GData*              config;
 
-        GModule*                module;
-        gushort                 (*pluginType)           (void);
-        const gchar*    (*pluginName)           (void);
-        const gchar*    (*pluginDesc)           (void);
-        const gchar*    (*pluginVersion)        (void);
-        gboolean                (*pluginInit)           (gpointer, gchar**);
-        gboolean                (*pluginSend)           (gpointer, gchar**);
-        gpointer                (*pluginReceive)        (gpointer);
-        gboolean                (*pluginExit)           (gchar**);
+        GModule*            module;
+        gushort             (*pluginProto)          (void);
+		const gchar*    	(*pluginAddress)        (void);
+        const gchar*    	(*pluginName)           (void);
+        const gchar*    	(*pluginDesc)           (void);
+        const gchar*    	(*pluginVersion)        (void);
+        gboolean            (*pluginInit)           (gpointer, gchar**);
+        gboolean            (*pluginSend)           (gpointer, gpointer, gchar**);
+        gpointer            (*pluginReceive)        (gpointer);
+        gboolean            (*pluginExit)           (gchar**);
 
-        GThread*                receiveThread;
+        GThread*            receiveThread;
 } Plugin;
 

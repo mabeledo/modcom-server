@@ -1,13 +1,19 @@
 /*******************************************************************
  *  Proyecto: Sistema modular de comunicacion con un robot movil
  *  Subproyecto: Servidor
- *  Archivo: basemanager.c
+ *  Archivo: base.c
  * 	Version: 0.1
  *
+ *  Application entry point. All operations are initialized and managed
+ *  here, so base.c is a interface to the "controller" side of the
+ *  application.
+ * 
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
 
 #include "general.h"
+#include "msg.h"
+#include "plugin.h"
 #include "thread.h"
 
 #include "config.h"
@@ -20,7 +26,14 @@
 #define DISPATCHERROR		"Unable to initialize the dispatcher"
 #define RECEIVEERROR		"Unable to initialize all receivers"
 
-/* Funcion openComSystem
+/* Global variables. */
+static GQueue* qPlugins;
+static GAsyncQueue* qMessages;
+static GThread* dispatchThread;
+static GThread* receiveThread;
+static ThreadData* tData;
+
+/* Funcion initBaseSystem
  * Precondiciones:
  * Postcondiciones:
  * Entrada: 
@@ -34,18 +47,15 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 	 * automatic deallocation after function exit.
 	 * */
 	GData* dConfig;
+	GData* baseConfig;
 	GData* pluginConfig;
-	GData* moduleConfig;
+	GData* receiveConfig;
 	GData* dispatchConfig;
 	GData* pluginSetConfig;
-	
-	GQueue* qPlugins;
-	GAsyncQueue* qMessages;
-	ThreadData* tData;
-	
-	GThread* dispatchThread;
-	GThread* receiveThread;
+
 	GError* threadError;
+	
+	gchar* behaviour;
 	
 	#ifdef G_THREADS_ENABLED
 		if (!g_thread_supported())
@@ -56,7 +66,7 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 		*error = g_strdup(THREADSNOTSUPPORTED);
 		return (FALSE);
 	#endif
-	
+
 	/* All data in the configuration file is copied into a
 	 * GData structure, in order to handle configuration parameters
 	 * easily.
@@ -68,8 +78,13 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 	}
 	
 	/* Gets per module configuration settings. */
+	baseConfig = g_datalist_get_data(&dConfig, "base");
 	pluginConfig = g_datalist_get_data(&dConfig, "plugins");
+	receiveConfig = g_datalist_get_data(&dConfig, "receive");
 	dispatchConfig = g_datalist_get_data(&dConfig, "dispatch");
+	
+	/* Fill base module configure options. */
+	behaviour = (gchar*)g_datalist_get_data(&baseConfig, "behaviour");
 	
 	/* *
 	 * Segunda fase (comprobacion y ejecucion de procesos):
@@ -79,7 +94,7 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 	 *  - (Initdispatcher)
 	 * */
 	if (!(initPlugins(&pluginConfig, error) &&
-		  initReceivers(error) &&
+		  initReceivers(&receiveConfig, error) &&
 		  initDispatcher(&dispatchConfig, error)))
 	{
 		return (FALSE);
@@ -132,12 +147,37 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 		return (FALSE);
 	}
 	
-	/* Waits for both threads.
+	/* Waits for both threads if the process was initialized by a server,
+	 * not a client.
 	 * Currently, returned values are ignored.
 	 * */
-	g_thread_join(receiveThread);
-	g_thread_join(dispatchThread);
+	if (g_str_equal(behaviour, "server") == 0)
+	{
+		g_thread_join(receiveThread);
+		g_thread_join(dispatchThread);
+	}
 	
+	return (TRUE);
+}
+
+gboolean
+writeMessage				(gchar* dest, gchar* proto, gchar* msg, gchar** error)
+{
+	Message* message;
+	const gchar* (*pluginProto) ();
+	
+	/*message = g_malloc0(sizeof(Message));
+	message->proto = proto;
+	message->dest = dest;*/
+	
+	/* TODO: source */
+	
+	return (TRUE);
+}
+
+gboolean
+readMessage					(gchar** msg, gchar** error)
+{
 	return (TRUE);
 }
 
