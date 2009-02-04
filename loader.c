@@ -1,7 +1,7 @@
 /********************************************************************
  *  Proyecto: Sistema modular de comunicacion con un robot movil
  *  Subproyecto: Servidor
- *  Archivo: filemanager.c
+ *  Archivo: loader.c
  * 	Version: 0.1
  *
  *  Autor: Manuel Angel Abeledo Garcia
@@ -19,6 +19,8 @@
 #endif
 
 /* Error messages */
+#define LOADPLUGINERROR			"El complemento no ha sido cargado"
+#define INITIALIZEPLUGIN		"El complemento no ha podido ser cargado"
 #define CANNOTLOCATEDIR			"El directorio de los complementos no existe"
 #define NOPLUGINFILESAVAILABLE	"No hay archivos de complemento disponibles"
 #define CANNOTOPENCONFIGFILE	"El archivo de configuracion no pudo ser abierto"
@@ -31,7 +33,7 @@
 
 /* Global variables
  * */
-gchar* directory;
+static gchar* directory;
 
 /* Funcion initPluginFiles
  * Precondiciones:
@@ -74,12 +76,13 @@ loadPlugin			(const gchar* fileName, GData* config, gchar** error)
 {
 	Plugin* plugin;
 	
-	gushort (*pluginType) (void);
+	gushort (*pluginProto) (void);
+	const gchar* (*pluginAddress) (void);
 	const gchar* (*pluginName) (void);
 	const gchar* (*pluginDesc) (void);
 	const gchar* (*pluginVersion) (void);
 	gboolean (*pluginInit) (gpointer data, gchar** error);
-	gboolean (*pluginSend) (gpointer data, gchar** error);
+	gboolean (*pluginSend) (gpointer dest, gpointer data, gchar** error);
 	gpointer (*pluginReceive) (gpointer data);
 	gboolean (*pluginExit) (gchar** error);
 	
@@ -95,7 +98,8 @@ loadPlugin			(const gchar* fileName, GData* config, gchar** error)
 		return (NULL);
 	}
 	
-	if (!(g_module_symbol(plugin->module, "pluginType", (gpointer)&pluginType) &&
+	if (!(g_module_symbol(plugin->module, "pluginProto", (gpointer)&pluginProto) &&
+		g_module_symbol(plugin->module, "pluginAddress", (gpointer)&pluginAddress) &&
 	    g_module_symbol(plugin->module, "pluginName", (gpointer)&pluginName) &&
 		g_module_symbol(plugin->module, "pluginDesc", (gpointer)&pluginDesc) &&
 		g_module_symbol(plugin->module, "pluginVersion", (gpointer)&pluginVersion) &&
@@ -109,7 +113,8 @@ loadPlugin			(const gchar* fileName, GData* config, gchar** error)
 		return (NULL);
 	}
 	
-	plugin->pluginType = (gpointer)pluginType;
+	plugin->pluginProto = (gpointer)pluginProto;
+	plugin->pluginAddress = (gpointer)pluginAddress;
 	plugin->pluginName = (gpointer)pluginName;
 	plugin->pluginDesc = (gpointer)pluginDesc;
 	plugin->pluginVersion = (gpointer)pluginVersion;
@@ -122,7 +127,11 @@ loadPlugin			(const gchar* fileName, GData* config, gchar** error)
 	 * The first parameter is a GData filled with the plugin configuration
 	 * options.
 	 * */
-	plugin->pluginInit((gpointer)plugin->config, error);
+	if ((plugin->pluginInit((gpointer)plugin->config, error)) == FALSE)
+	{
+		*error = g_strconcat(INITIALIZEPLUGIN, ": ", *error, NULL);
+		return (NULL);
+	}
 
 	return (plugin);
 }
@@ -167,7 +176,7 @@ loadAllPlugins				(GQueue* qPlugins, GData** pluginSetConfig, gchar** error)
 			
 			if ((plugin = loadPlugin(dirEntry, pluginConfig, error)) == NULL)
 			{
-				return (FALSE);
+				g_debug("%s", g_strconcat(LOADPLUGINERROR, ": ", *error, NULL));
 			}
 			else
 			{

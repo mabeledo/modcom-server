@@ -1,7 +1,7 @@
 /********************************************************************
  *  Proyecto: Sistema modular de comunicacion con un robot movil
  *  Subproyecto: Servidor
- *  Archivo: dispatchmanager.c
+ *  Archivo: dispatcher.c
  * 	Version: 0.1
  *
  *  Autor: Manuel Angel Abeledo Garcia
@@ -45,7 +45,7 @@ loadDispatcher					(gpointer data)
 	Plugin* aux;
 	gint length, i;
 	
-	gboolean (*sendFunc) (gpointer data, gchar** error);
+	gboolean (*sendFunc) (gpointer dest, gpointer data, gchar** error);
 	gchar** funcError;
 	
 	tData = data;
@@ -57,7 +57,7 @@ loadDispatcher					(gpointer data)
 	for (i = 0; i < length; i++)
 	{
 		aux = (Plugin*)g_queue_peek_nth(tData->qPlugins, i);
-		g_datalist_id_set_data(&dispatchers, (GQuark)aux->pluginType(), aux->pluginSend);
+		g_datalist_id_set_data(&dispatchers, (GQuark)aux->pluginProto(), aux->pluginSend);
 	}
 	
 	/* Now the dispatcher is fully functional. */
@@ -68,9 +68,9 @@ loadDispatcher					(gpointer data)
 	{
 		msg = g_async_queue_pop(tData->qMessages);
 
-		sendFunc = g_datalist_id_get_data(&dispatchers, (GQuark)msg->destProto);
+		sendFunc = g_datalist_id_get_data(&dispatchers, (GQuark)msg->proto);
 		
-		if (!sendFunc((gpointer)msg, funcError))
+		if (!sendFunc((gpointer)msg->dest, (gpointer)msg, funcError))
 		{
 			g_warning("%s: %s", CANNOTSENDDATA, *funcError);
 		}

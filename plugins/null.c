@@ -9,15 +9,22 @@
 
 #include "null.h"
 
-#define PLUGINTYPE		1
+#define PLUGINPROTO		1
+#define PLUGINADDRESS	"null"
 #define PLUGINNAME		"null"
 #define PLUGINDESC		"Sin funcionalidad"
 #define PLUGINVERSION	"0.1"
 
 gushort
-pluginType							()
+pluginProto							()
 {
-	return ((gushort)PLUGINTYPE);
+	return ((gushort)PLUGINPROTO);
+}
+
+const gchar*
+pluginAddress						()
+{
+	return (PLUGINADDRESS);
 }
 
 const gchar*
@@ -46,7 +53,7 @@ pluginInit							(gpointer data, gchar** error)
 }
 
 gboolean
-pluginSend							(gpointer data, gchar** error)
+pluginSend							(gpointer dest, gpointer data, gchar** error)
 {
 	return (TRUE);
 }

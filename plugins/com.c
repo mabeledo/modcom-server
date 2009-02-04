@@ -9,7 +9,7 @@
 
 #include "com.h"
 
-#define PLUGINTYPE		4
+#define PLUGINPROTO		4
 #define PLUGINNAME		"com"
 #define PLUGINDESC		"COM Port"
 #define PLUGINVERSION	"0.1"
@@ -37,12 +37,21 @@ static GIOChannel* devChan;
 	
 	/* Device file descriptor. */
 	static gint fd;
+	
+	/* Device name */
+	static gchar* device;
 #endif
 
 gushort
-pluginType							()
+pluginProto							()
 {
-	return ((gushort)PLUGINTYPE);
+	return ((gushort)PLUGINPROTO);
+}
+
+const gchar*
+pluginAddress						()
+{
+	return (device);
 }
 
 const gchar*
@@ -67,7 +76,6 @@ gboolean
 pluginInit							(gpointer data, gchar** error)
 {
 	GData* comConfig = (GData*)data;
-	gchar* device;
 	
 	/* Load configuration parameters */
 	if (g_datalist_get_data(&comConfig, "device") != NULL)
@@ -143,6 +151,7 @@ pluginInit							(gpointer data, gchar** error)
 		tcflush(fd, TCIFLUSH);
 		tcsetattr(fd, TCSANOW, &newCfg);
 		
+		/* Only one port is managed. */
 		devChan = g_io_channel_unix_new(fd);
 	#endif
 
@@ -151,9 +160,9 @@ pluginInit							(gpointer data, gchar** error)
 }
 
 gboolean
-pluginSend							(gpointer data, gchar** error)
+pluginSend							(gpointer dest, gpointer data, gchar** error)
 {
-	gchar* msgStr = g_memdup(data, sizeof(Message));
+	gchar* msgStr = g_memdup(data, sizeof(data));
 	GError* returnError;
 
 	if (g_io_channel_write_chars(devChan, msgStr, BUFFERLEN, NULL, &returnError) != G_IO_STATUS_NORMAL)

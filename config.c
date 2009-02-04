@@ -1,7 +1,7 @@
 /********************************************************************
  *  Proyecto: Sistema modular de comunicacion con un robot movil
  *  Subproyecto: Servidor
- *  Archivo: configmanager.c
+ *  Archivo: config.c
  * 	Version: 0.1
  *
  *  Autor: Manuel Angel Abeledo Garcia

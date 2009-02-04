@@ -13,20 +13,17 @@
 /* Struct for receiving/sending messages. */
 typedef struct _Message
 {
-	/* Source protocol.
+	/*
 	 * Available protocols:
 	 *   NULL   - 1
 	 *   TCP/IP - 2
 	 *   FILE   - 3
 	 *   COM    - 4
 	 * */
-	gushort srcProto;
+	gushort proto;
 	
 	/* Source address. */
 	gchar src[15];
-	
-	/* Destination protocol. */
-	gushort destProto;
 	
 	/* Destination address. */
 	gchar dest[15];

@@ -23,7 +23,7 @@
  * Proceso:
  * */
 gboolean
-initReceivers					(gchar** error)
+initReceivers					(GData** receiveConfig, gchar** error)
 {
 	return (TRUE);
 }
@@ -71,7 +71,7 @@ loadAllReceivers				(gpointer data)
 	gint i;
 	
 	tData = data;
-
+	
 	/* Crea los hilos para las funciones de envío */
 	for (i = 0; i < g_queue_get_length(tData->qPlugins); i++)
 	{
@@ -81,6 +81,8 @@ loadAllReceivers				(gpointer data)
 			return (threadError);
 		}
 	}
+	
+	g_debug("Receiver up & running");
 	
 	/* Waits for every thread previously created */
 	for (i = 0; i < g_queue_get_length(tData->qPlugins); i++)

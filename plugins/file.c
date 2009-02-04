@@ -9,7 +9,8 @@
 
 #include "file.h"
 
-#define PLUGINTYPE		3
+#define PLUGINPROTO		3
+#define PLUGINADDRESS	"file"
 #define PLUGINNAME		"file"
 #define PLUGINDESC		"File reader plugin"
 #define PLUGINVERSION	"0.1"
@@ -26,9 +27,15 @@ static gchar** files;
 static gboolean deleteContent;
 
 gushort
-pluginType							()
+pluginProto							()
 {
-	return ((gushort)PLUGINTYPE);
+	return ((gushort)PLUGINPROTO);
+}
+
+const gchar*
+pluginAddress						()
+{
+	return (PLUGINADDRESS);
 }
 
 const gchar*
@@ -83,7 +90,7 @@ pluginInit							(gpointer data, gchar** error)
 }
 
 gboolean
-pluginSend							(gpointer data, gchar** error)
+pluginSend							(gpointer dest, gpointer data, gchar** error)
 {
 	return (TRUE);
 }

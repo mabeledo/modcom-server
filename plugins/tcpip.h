@@ -13,15 +13,23 @@
 
 /* Winsocket support */
 #ifdef G_OS_WIN32
-	/* TODO */
+	#include <iostream.h>
+	#include <winsock.h>
 #endif
 
 /* Posix socket support */
 #ifdef G_OS_UNIX
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <string.h>
+
+
 	#include <unistd.h>
 	#include <sys/types.h> 
 	#include <sys/socket.h>
+	#include <sys/ioctl.h>
 	#include <resolv.h>
+	#include <net/if.h>
 	#include <netinet/in.h>
 	#include <arpa/inet.h>
 	#include <netdb.h>
