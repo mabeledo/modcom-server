@@ -5,7 +5,7 @@
  * 	Version: 0.1
  *
  *  Application entry point. All operations are initialized and managed
- *  here, so base.c is a interface to the "controller" side of the
+ *  here, so base.c is a interface to the "view" side of the
  *  application.
  * 
  *  Autor: Manuel Angel Abeledo Garcia
@@ -20,6 +20,7 @@
 #include "loader.h"
 #include "receiver.h"
 #include "dispatcher.h"
+#include "controller.h"
 
 /* Error messages */
 #define THREADSNOTSUPPORTED	"Threads not supported"
@@ -52,6 +53,7 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 	GData* receiveConfig;
 	GData* dispatchConfig;
 	GData* pluginSetConfig;
+	GData* controlConfig;
 
 	GError* threadError;
 	
@@ -146,38 +148,32 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 											NULL);
 		return (FALSE);
 	}
-	
+
 	/* Waits for both threads if the process was initialized by a server,
 	 * not a client.
 	 * Currently, returned values are ignored.
 	 * */
-	if (g_str_equal(behaviour, "server") == 0)
+	if (g_str_equal(behaviour, "server"))
 	{
+		
 		g_thread_join(receiveThread);
 		g_thread_join(dispatchThread);
 	}
+	else
+	{
+		/* Initialize controller module configuration. */
+		if (!(initController(&controlConfig, error)))
+		{
+			return (FALSE);
+		}
+		
+		/* Load all data needed for controller module. */
+		if (!(loadController(qPlugins, qMessages, error)))
+		{
+			return (FALSE);
+		}
+	}
 	
-	return (TRUE);
-}
-
-gboolean
-writeMessage				(gchar* dest, gchar* proto, gchar* msg, gchar** error)
-{
-	Message* message;
-	const gchar* (*pluginProto) ();
-	
-	/*message = g_malloc0(sizeof(Message));
-	message->proto = proto;
-	message->dest = dest;*/
-	
-	/* TODO: source */
-	
-	return (TRUE);
-}
-
-gboolean
-readMessage					(gchar** msg, gchar** error)
-{
 	return (TRUE);
 }
 

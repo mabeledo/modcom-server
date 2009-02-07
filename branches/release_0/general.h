@@ -9,6 +9,7 @@
  ********************************************************************/
 
 #include <glib.h>
+#include <glib/gprintf.h>
 #include <gmodule.h>
 
 #define MODCOM_SERVER_VERSION		"0.1"
