@@ -7,8 +7,8 @@
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
 
-#ifndef RECEIVERMANAGER_H
-#define RECEIVERMANAGER_H
+#ifndef RECEIVER_H
+#define RECEIVER_H
 
 /* Funcion initReceivers
  * Precondiciones:

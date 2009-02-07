@@ -1,14 +1,14 @@
 /********************************************************************
  *  Proyecto: Sistema modular de comunicacion con un robot movil
  *  Subproyecto: Servidor
- *  Archivo: configmanager.h
+ *  Archivo: config.h
  * 	Version: 0.1
  *
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
 
-#ifndef CONFIGMANAGER_H
-#define CONFIGMANAGER_H
+#ifndef CONFIG_H
+#define CONFIG_H
 
 /* Funcion initConfigFile
  * Precondiciones:

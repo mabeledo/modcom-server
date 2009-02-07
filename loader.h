@@ -1,14 +1,14 @@
 /********************************************************************
  *  Proyecto: Sistema modular de comunicacion con un robot movil
  *  Subproyecto: Servidor
- *  Archivo: load.h
+ *  Archivo: loader.h
  * 	Version: 0.1
  *
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
 
-#ifndef PLUGINMANAGER_H
-#define PLUGINMANAGER_H
+#ifndef LOADER_H
+#define LOADER_H
 
 /* Funcion initPluginFiles
  * Precondiciones:

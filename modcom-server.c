@@ -107,10 +107,7 @@ main				(int argc, char *argv[])
 		g_critical("%s", returnError);
 		return (-3);	
 	}
-	for (;;)
-	{
-		i++;
-	}
+
 	g_print("Parent process done...\n");
 	return(0);
 }
