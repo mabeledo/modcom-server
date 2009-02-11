@@ -38,7 +38,7 @@ loadController				(GQueue*, GAsyncQueue*, gchar**);
  * Proceso: 
  * */
 gboolean
-writeMessage				(gchar*, gchar*, gchar*, gchar**);
+writeMessage				(const gchar*, const gchar*, const gchar*, gchar**);
 
 /* Funcion readMessage
  * Precondiciones:

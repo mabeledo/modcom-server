@@ -9,16 +9,16 @@
 
 #include "null.h"
 
-#define PLUGINPROTO		1
+#define PLUGINPROTO		"NULL"
 #define PLUGINADDRESS	"null"
-#define PLUGINNAME		"null"
+#define PLUGINNAME		"Null"
 #define PLUGINDESC		"Sin funcionalidad"
 #define PLUGINVERSION	"0.1"
 
-gushort
+const gchar*
 pluginProto							()
 {
-	return ((gushort)PLUGINPROTO);
+	return (PLUGINPROTO);
 }
 
 const gchar*

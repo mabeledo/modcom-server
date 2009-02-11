@@ -9,10 +9,10 @@
 
 #include "file.h"
 
-#define PLUGINPROTO		3
+#define PLUGINPROTO		"FILE"
 #define PLUGINADDRESS	"file"
-#define PLUGINNAME		"file"
-#define PLUGINDESC		"File reader plugin"
+#define PLUGINNAME		"File writer/reader"
+#define PLUGINDESC		"File writer and reader"
 #define PLUGINVERSION	"0.1"
 
 #define MAXFILES		3
@@ -26,10 +26,10 @@
 static gchar** files;
 static gboolean deleteContent;
 
-gushort
+const gchar*
 pluginProto							()
 {
-	return ((gushort)PLUGINPROTO);
+	return (PLUGINPROTO);
 }
 
 const gchar*

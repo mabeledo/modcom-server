@@ -76,7 +76,7 @@ loadPlugin			(const gchar* fileName, GData* config, gchar** error)
 {
 	Plugin* plugin;
 	
-	gushort (*pluginProto) (void);
+	const gchar* (*pluginProto) (void);
 	const gchar* (*pluginAddress) (void);
 	const gchar* (*pluginName) (void);
 	const gchar* (*pluginDesc) (void);

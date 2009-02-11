@@ -9,25 +9,18 @@
  ********************************************************************/
  
  #define END_OF_DATA				"^END"
- #define PROTOCOLS					{"", "NULL", "TCPIP", "FILE", "COM"}
 
 /* Struct for receiving/sending messages. */
 typedef struct _Message
 {
-	/*
-	 * Available protocols:
-	 *   NULL   - 0
-	 *   TCPIP - 1
-	 *   FILE   - 2
-	 *   COM    - 3
-	 * */
-	gushort proto;
+	/* Protocol. */
+	const gchar* proto;
 	
 	/* Source address. */
-	gchar* src;
+	const gchar* src;
 	
 	/* Destination address. */
-	gchar* dest;
+	const gchar* dest;
 	
 	/* Type.
 	 * */
@@ -44,9 +37,9 @@ typedef struct _Message
 	gushort part;
 	
 	/* Message contents. */
-	gchar* data;
+	const gchar* data;
 	
 	/* MD5 checksum. */
-	gchar checksum[32];
+	const gchar* checksum;
 } Message;
 

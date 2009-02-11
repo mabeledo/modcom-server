@@ -9,9 +9,9 @@
 
 #include "com.h"
 
-#define PLUGINPROTO		4
-#define PLUGINNAME		"com"
-#define PLUGINDESC		"COM Port"
+#define PLUGINPROTO		"COM"
+#define PLUGINNAME		"COM Port"
+#define PLUGINDESC		"Serial port plugin"
 #define PLUGINVERSION	"0.1"
 
 /* COM port attributes */
