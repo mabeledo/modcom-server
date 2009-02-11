@@ -47,7 +47,7 @@ loadDispatcher					(gpointer data)
 	
 	gboolean (*sendFunc) (gpointer dest, gpointer data, gchar** error);
 	gchar** funcError;
-	
+		
 	tData = data;
 	
 	g_datalist_init(&dispatchers);
@@ -57,23 +57,26 @@ loadDispatcher					(gpointer data)
 	for (i = 0; i < length; i++)
 	{
 		aux = (Plugin*)g_queue_peek_nth(tData->qPlugins, i);
-		g_datalist_id_set_data(&dispatchers, (GQuark)aux->pluginProto(), aux->pluginSend);
+		g_datalist_set_data(&dispatchers, aux->pluginProto(), aux->pluginSend);
 	}
 	
 	/* Now the dispatcher is fully functional. */
 	g_debug("Dispatcher up & running");
-	
+
 	/* Keeps sending data */
 	while ((g_queue_get_length(tData->qPlugins) > 0) || (g_async_queue_length(tData->qMessages) > 0))
 	{
-		msg = g_async_queue_pop(tData->qMessages);
-
-		sendFunc = g_datalist_id_get_data(&dispatchers, (GQuark)msg->proto);
-		
-		if (!sendFunc((gpointer)msg->dest, (gpointer)msg, funcError))
+		if (g_async_queue_length(tData->qMessages) > 0)
 		{
-			g_warning("%s: %s", CANNOTSENDDATA, *funcError);
-		}
+			msg = g_async_queue_pop(tData->qMessages);
+			
+			sendFunc = g_datalist_get_data(&dispatchers, msg->proto);
+			
+			if (!sendFunc((gpointer)msg->dest, (gpointer)msg, funcError))
+			{
+				g_warning("%s: %s", CANNOTSENDDATA, *funcError);
+			}
+		}	
 	}
 
 	return (NULL);

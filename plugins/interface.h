@@ -1,7 +1,7 @@
 /********************************************************************
  *  Proyecto: Sistema modular de comunicacion con un robot movil
  *  Subproyecto: Servidor
- *  Archivo: plugins/plugin.h
+ *  Archivo: plugins/interface.h
  * 	Version: 0.1
  *
  *  Autor: Manuel Angel Abeledo Garcia
@@ -13,8 +13,11 @@
 /* Default plugin interface.
  * */
 
-gushort
-pluginType							();
+const gchar*
+pluginProto							();
+
+const gchar*
+pluginAddress						();
 
 const gchar*
 pluginName							();
@@ -29,7 +32,7 @@ gboolean
 pluginInit							(gpointer, gchar**);
 
 gboolean
-pluginSend							(gpointer, gchar**);
+pluginSend							(gpointer, gpointer, gchar**);
 
 gpointer
 pluginReceive						(gpointer);

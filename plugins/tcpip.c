@@ -9,8 +9,8 @@
 
 #include "tcpip.h"
 
-#define PLUGINPROTO		2
-#define PLUGINNAME		"tcpip"
+#define PLUGINPROTO		"TCPIP"
+#define PLUGINNAME		"TCP/IP"
 #define PLUGINDESC		"Complemento de comunicaciones a traves de protocolo TCP/IP"
 #define PLUGINVERSION	"0.1"
 
@@ -36,10 +36,10 @@ static gint listenPort = LISTENPORT;
 static gchar* interface = INTERFACE;
 static gchar* address = ADDRESS;
 
-gushort
+const gchar*
 pluginProto							()
 {
-	return ((gushort)PLUGINPROTO);
+	return (PLUGINPROTO);
 }
 
 const gchar*

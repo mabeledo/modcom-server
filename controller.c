@@ -15,11 +15,8 @@
 #include "msg.h"
 #include "plugin.h"
 
-/* This constant should not be here */
-
 static GAsyncQueue* qMessages;
 static GData* addresses;
-static gchar* protocols[] = PROTOCOLS;
 
 /* Funcion initController
  * Precondiciones:
@@ -44,8 +41,7 @@ initController				(GData** controlConfig, gchar** error)
 gboolean
 loadController				(GQueue* qPlugins, GAsyncQueue* msgs, gchar** error)
 {
-	gint i, length, proto;
-	gchar** protoAndSrc;
+	gint i, length;
 	Plugin* aux;
 	
 	g_datalist_init(&addresses);
@@ -53,25 +49,35 @@ loadController				(GQueue* qPlugins, GAsyncQueue* msgs, gchar** error)
 	length = (gint)g_queue_get_length(qPlugins);
 	
 	for (i = 0 ; i < length; i++)
-	{
-		/* This is how it works.
-		 * Each plugin is asked for its protocol code and local address.
-		 * This data is packed in a bidimensional gchar array and inserted
-		 * in a GData structure with a GQuark, created from the protocol
-		 * name specified in the "protocols" array in msg.h.
-		 * */
+	{		
 		aux = g_queue_peek_nth(qPlugins, i);
-		proto = (gint)aux->pluginProto();
-		g_sprintf(protoAndSrc[0], "%d", proto);
-		protoAndSrc[1] = g_strdup(aux->pluginAddress());
-		
-		g_datalist_set_data(&addresses, protocols[proto], protoAndSrc);
+		g_datalist_set_data(&addresses, (gchar*)aux->pluginProto(), (gchar*)aux->pluginAddress());
 	}
 
 	qMessages = msgs;
 
 	return (TRUE);
 }
+
+
+/* Funcion createMsgId
+ * Precondiciones:
+ * Postcondiciones:
+ * Entrada: 
+ * Salida: 
+ * Proceso: 
+ * */
+static gushort
+createMsgId					()
+{
+	gushort id;
+	
+	id = 0;
+	
+	return (id);
+}
+
+
 
 /* Funcion writeMessage
  * Precondiciones:
@@ -81,26 +87,36 @@ loadController				(GQueue* qPlugins, GAsyncQueue* msgs, gchar** error)
  * Proceso: 
  * */
 gboolean
-writeMessage				(gchar* proto, gchar* dest, gchar* data, gchar** error)
+writeMessage				(const gchar* proto, const gchar* dest, const gchar* data, gchar** error)
 {
 	Message* msg;
-	gchar** protoAndSrc;
-	
-	protoAndSrc = g_datalist_get_data(&addresses, proto);
+	const gchar* address;
 
-	msg = g_malloc0(sizeof(Message));
-	msg->proto = (gushort)g_strtod(protoAndSrc[0], NULL);
-	msg->dest = g_strdup(dest);
-	msg->src = protoAndSrc[1];
-	msg->type = 0;
+	address = g_datalist_get_data(&addresses, proto);
 	
-	/* Should it be produced by an algoritm? */
-	msg->id = 0;
+	msg = g_malloc0(sizeof(Message));
+	
+	msg->proto = proto;
+	msg->dest = dest;
+	
+	msg->src = g_datalist_get_data(&addresses, proto);
+	msg->type = 0;
+
+	msg->id = createMsgId();
 	
 	msg->part = 0;
 	msg->data = g_strdup(data);
-
+	msg->checksum = (const gchar*)g_compute_checksum_for_string
+									(G_CHECKSUM_MD5,
+							 		data,
+							 		-1);
+	
 	g_async_queue_push(qMessages, msg);
+	
+	g_debug("Message pushed into the queue");
+	
+	/* Free data. */
+	g_free(msg);
 		
 	return (TRUE);
 }
@@ -119,7 +135,7 @@ readMessage					(gchar* data, gchar** error)
 	
 	msg = g_async_queue_pop(qMessages);
 	
-	g_sprintf(data, "%s  %s  %s  %s", protocols[(gint)msg->proto], msg->src, msg->dest, msg->data);
+	g_sprintf(data, "%s  %s  %s  %s", msg->proto, msg->src, msg->dest, msg->data);
 	
 	return (TRUE);
 }

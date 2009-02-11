@@ -13,15 +13,15 @@ typedef struct _Plugin
         GData*              config;
 
         GModule*            module;
-        gushort             (*pluginProto)          (void);
+        const gchar*       (*pluginProto)          (void);
 		const gchar*    	(*pluginAddress)        (void);
         const gchar*    	(*pluginName)           (void);
         const gchar*    	(*pluginDesc)           (void);
         const gchar*    	(*pluginVersion)        (void);
-        gboolean            (*pluginInit)           (gpointer, gchar**);
-        gboolean            (*pluginSend)           (gpointer, gpointer, gchar**);
-        gpointer            (*pluginReceive)        (gpointer);
-        gboolean            (*pluginExit)           (gchar**);
+        gboolean           (*pluginInit)           (gpointer, gchar**);
+        gboolean           (*pluginSend)           (gpointer, gpointer, gchar**);
+        gpointer           (*pluginReceive)        (gpointer);
+        gboolean           (*pluginExit)           (gchar**);
 
         GThread*            receiveThread;
 } Plugin;
