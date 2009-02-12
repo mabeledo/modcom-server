@@ -28,7 +28,7 @@
 #define RECEIVEERROR		"Unable to initialize all receivers"
 
 /* Global variables. */
-static GQueue* qPlugins;
+static GData* dPlugins;
 static GAsyncQueue* qMessages;
 static GThread* dispatchThread;
 static GThread* receiveThread;
@@ -56,7 +56,6 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 	GData* controlConfig;
 
 	GError* threadError;
-	
 	gchar* behaviour;
 	
 	#ifdef G_THREADS_ENABLED
@@ -103,30 +102,32 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 	}
 	
 	/* Free memory containing configuration patterns already used. */
+	g_datalist_remove_data(&dConfig, "base");
 	g_datalist_remove_data(&dConfig, "plugins");
+	g_datalist_remove_data(&dConfig, "receive");
+	g_datalist_remove_data(&dConfig, "dispatch");
 	pluginSetConfig = dConfig;
 	
 	/* Inicializa la cola de plugins y de mensajes. */
-	qPlugins = g_queue_new();
+	g_datalist_init(&dPlugins);
 	qMessages = g_async_queue_new();
 	tData = g_new0(ThreadData, 1);
-	tData->qPlugins = qPlugins;
+	tData->dPlugins = &dPlugins;
 	tData->qMessages = qMessages;
 	
 	/* Se inicializan las estructuras de plugins.
 	 *  - Explora el directorio de plugins y carga los ficheros.
 	 *  - Carga las funciones en las estructuras de plugin correspondientes.
 	 * */
-	if (!loadAllPlugins(qPlugins, &dConfig, error))
+	if (!loadAllPlugins(&dPlugins, &dConfig, error))
 	{
 		return (FALSE);
 	}
-	
+
 	/* DispatchManager manages the message dispatching process.
 	 * ReceiveManager creates execution threads needed for asynchronous
 	 * message reception.
 	 * */
-	
 	if ((dispatchThread = g_thread_create((GThreadFunc)&loadDispatcher,
 										  (gpointer)tData, TRUE, &threadError)) == NULL)
 	{
@@ -168,7 +169,7 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 		}
 		
 		/* Load all data needed for controller module. */
-		if (!(loadController(qPlugins, qMessages, error)))
+		if (!(loadController(&dPlugins, qMessages, error)))
 		{
 			return (FALSE);
 		}

@@ -16,7 +16,7 @@
 #include "plugin.h"
 
 static GAsyncQueue* qMessages;
-static GData* addresses;
+static GData** dPlugins;
 
 /* Funcion initController
  * Precondiciones:
@@ -39,21 +39,9 @@ initController				(GData** controlConfig, gchar** error)
  * Proceso: 
  * */
 gboolean
-loadController				(GQueue* qPlugins, GAsyncQueue* msgs, gchar** error)
+loadController				(GData** plugins, GAsyncQueue* msgs, gchar** error)
 {
-	gint i, length;
-	Plugin* aux;
-	
-	g_datalist_init(&addresses);
-	
-	length = (gint)g_queue_get_length(qPlugins);
-	
-	for (i = 0 ; i < length; i++)
-	{		
-		aux = g_queue_peek_nth(qPlugins, i);
-		g_datalist_set_data(&addresses, (gchar*)aux->pluginProto(), (gchar*)aux->pluginAddress());
-	}
-
+	dPlugins = plugins;
 	qMessages = msgs;
 
 	return (TRUE);
@@ -90,16 +78,14 @@ gboolean
 writeMessage				(const gchar* proto, const gchar* dest, const gchar* data, gchar** error)
 {
 	Message* msg;
-	const gchar* address;
-
-	address = g_datalist_get_data(&addresses, proto);
+	Plugin* aux;
 	
+	aux = (Plugin*)g_datalist_get_data(dPlugins, proto);
 	msg = g_malloc0(sizeof(Message));
 	
 	msg->proto = proto;
 	msg->dest = dest;
-	
-	msg->src = g_datalist_get_data(&addresses, proto);
+	msg->src = aux->pluginAddress();
 	msg->type = 0;
 
 	msg->id = createMsgId();

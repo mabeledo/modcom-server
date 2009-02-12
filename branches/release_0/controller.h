@@ -28,7 +28,7 @@ initController				(GData**, gchar**);
  * Proceso: 
  * */
 gboolean
-loadController				(GQueue*, GAsyncQueue*, gchar**);
+loadController				(GData**, GAsyncQueue*, gchar**);
 
 /* Funcion writeMessage
  * Precondiciones:

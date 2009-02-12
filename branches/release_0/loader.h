@@ -28,6 +28,6 @@ initPlugins					(GData**, gchar**);
  * Proceso:
  * */
 gboolean
-loadAllPlugins				(GQueue*, GData**, gchar**);
+loadAllPlugins				(GData**, GData**, gchar**);
 
 #endif

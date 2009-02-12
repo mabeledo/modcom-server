@@ -14,6 +14,6 @@
  * */
 typedef struct _ThreadData
 {
-	GQueue* qPlugins;
+	GData** dPlugins;
 	GAsyncQueue* qMessages;
 } ThreadData;
