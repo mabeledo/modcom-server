@@ -39,40 +39,27 @@ initDispatcher					(GData** dispatchConfig, gchar** error)
 gpointer
 loadDispatcher					(gpointer data)
 {
-	GData* dispatchers;
 	ThreadData* tData;
 	Message* msg;
 	Plugin* aux;
-	gint length, i;
-	
-	gboolean (*sendFunc) (gpointer dest, gpointer data, gchar** error);
 	gchar** funcError;
-		
+	GData* dPlugins;
+	
 	tData = data;
-	
-	g_datalist_init(&dispatchers);
-	length = (gint)g_queue_get_length(tData->qPlugins);
-	
-	/* Fill the GData structure with plugin descriptions and pointers. */
-	for (i = 0; i < length; i++)
-	{
-		aux = (Plugin*)g_queue_peek_nth(tData->qPlugins, i);
-		g_datalist_set_data(&dispatchers, aux->pluginProto(), aux->pluginSend);
-	}
 	
 	/* Now the dispatcher is fully functional. */
 	g_debug("Dispatcher up & running");
 
 	/* Keeps sending data */
-	while ((g_queue_get_length(tData->qPlugins) > 0) || (g_async_queue_length(tData->qMessages) > 0))
+	while ((tData->dPlugins != NULL) || (g_async_queue_length(tData->qMessages) > 0))
 	{
 		if (g_async_queue_length(tData->qMessages) > 0)
 		{
 			msg = g_async_queue_pop(tData->qMessages);
 			
-			sendFunc = g_datalist_get_data(&dispatchers, msg->proto);
+			aux = g_datalist_get_data(tData->dPlugins, msg->proto);
 			
-			if (!sendFunc((gpointer)msg->dest, (gpointer)msg, funcError))
+			if (!aux->pluginSend((gpointer)msg->dest, (gpointer)msg, funcError))
 			{
 				g_warning("%s: %s", CANNOTSENDDATA, *funcError);
 			}

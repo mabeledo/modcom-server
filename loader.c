@@ -72,7 +72,7 @@ initPlugins					(GData** pluginConfig, gchar** error)
  * Proceso:
  * */
 static Plugin*
-loadPlugin			(const gchar* fileName, GData* config, gchar** error)
+loadPlugin			(const gchar* fileName, GData** config, gchar** error)
 {
 	Plugin* plugin;
 	
@@ -145,13 +145,14 @@ loadPlugin			(const gchar* fileName, GData* config, gchar** error)
  * Proceso:
  * */
 gboolean
-loadAllPlugins				(GQueue* qPlugins, GData** pluginSetConfig, gchar** error)
+loadAllPlugins				(GData** dPlugins, GData** pluginSetConfig, gchar** error)
 {
 	GDir* pluginDir;
 	gchar* dirEntry;
 	gchar* configEntry;
-	GData* pluginConfig;
+	GData** pluginConfig;
 	Plugin* plugin;
+	gint counter;
 
 	/* Se supondra que los modulos se encuentran en un directorio
 	 * especifico.
@@ -161,6 +162,8 @@ loadAllPlugins				(GQueue* qPlugins, GData** pluginSetConfig, gchar** error)
 		*error = g_strdup(CANNOTOPENDIRECTORY);
 		return (FALSE);
 	}
+	
+	counter = 0;
 	
 	/* Every directory entry is read */
 	while ((dirEntry = (gchar*)g_dir_read_name(pluginDir)) != NULL)
@@ -176,16 +179,17 @@ loadAllPlugins				(GQueue* qPlugins, GData** pluginSetConfig, gchar** error)
 			
 			if ((plugin = loadPlugin(dirEntry, pluginConfig, error)) == NULL)
 			{
-				g_debug("%s", g_strconcat(LOADPLUGINERROR, ": ", *error, NULL));
+				g_warning("%s", g_strconcat(LOADPLUGINERROR, ": ", *error, NULL));
 			}
 			else
 			{
-				g_queue_push_head(qPlugins, plugin);
+				g_datalist_set_data(dPlugins, plugin->pluginProto(), plugin);
+				counter++;
 			}
 		}
 	}
 	
-	if (g_queue_is_empty(qPlugins))
+	if (counter <= 0)
 	{
 		*error = g_strdup(NOPLUGINFILESAVAILABLE);
 		return (FALSE);

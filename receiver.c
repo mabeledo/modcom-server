@@ -15,6 +15,15 @@
 #define NOTENOUGHTHREADS		"No se ha creado ningun thread"
 #define CANNOTCREATETHREAD		"No se ha podido crear el thread"
 
+/* Local data definitions. */
+typedef struct 
+_ForeachData
+{
+	GAsyncQueue* qMessages;
+	GPtrArray* pThreads;
+	gint counter;
+} ForeachData;
+
 /* Funcion initReceivers
  * Precondiciones:
  * Postcondiciones:
@@ -35,24 +44,34 @@ initReceivers					(GData** receiveConfig, gchar** error)
  * Salida: Puntero a un mensaje de error.
  * Proceso: Inicia los hilos necesarios para un complemento.
  * */
-static gboolean
-loadReceiver					(Plugin* plugin, GAsyncQueue* qMessages, gchar** error)
+static void
+loadReceiver					(GQuark key, gpointer data, gpointer user_data)
 {
+	Plugin* plugin;
+	ForeachData* fData;
 	GError* threadError = NULL;
 
+	plugin = (Plugin*)data;
+	fData = (ForeachData*)user_data;
+
 	/* Creacion del hilo de recepcion, almacenamiento de la referencia en la cola */
-	plugin->receiveThread = g_thread_create(plugin->pluginReceive, (gpointer)qMessages, TRUE, &threadError);
+	plugin->receiveThread = g_thread_create(plugin->pluginReceive, (gpointer)fData->qMessages, TRUE, &threadError);
 
 	if (threadError != NULL)
 	{
-		*error = g_strconcat(CANNOTCREATETHREAD, ". Plugin: ", plugin->pluginName(),
-							" Error: ", threadError->message, NULL);
+		g_warning("%s. Plugin: %s. Error: %s.", CANNOTCREATETHREAD,
+												plugin->pluginName(),
+												threadError->message);
 		g_error_free(threadError);
 		g_free(plugin->receiveThread);
-		return (FALSE);
 	}
-
-	return (TRUE);
+	else
+	{
+		g_ptr_array_add(fData->pThreads, (gpointer)plugin->receiveThread);
+		fData->counter++;
+	}
+	
+	return;
 }
 
 /* Funcion loadAllReceivers
@@ -65,31 +84,35 @@ loadReceiver					(Plugin* plugin, GAsyncQueue* qMessages, gchar** error)
 gpointer
 loadAllReceivers				(gpointer data)
 {
-	Plugin* auxPlugin;
 	ThreadData* tData;
-	gchar* threadError;
+	ForeachData* fData;
+	GData** dPlugins;
 	gint i;
 	
 	tData = data;
+	dPlugins = tData->dPlugins;
+	fData = g_malloc0(sizeof(ForeachData));
+	fData->qMessages = tData->qMessages;
+	fData->pThreads = g_ptr_array_new();
+	fData->counter = 0;
 	
 	/* Crea los hilos para las funciones de envío */
-	for (i = 0; i < g_queue_get_length(tData->qPlugins); i++)
-	{
-		/* Rellena la estructura de datos para el hilo */
-		if (!(loadReceiver((Plugin*)g_queue_peek_nth(tData->qPlugins, i), tData->qMessages, &threadError)))
-		{
-			return (threadError);
-		}
-	}
-	
+	g_datalist_foreach(dPlugins, loadReceiver, (gpointer)fData);
+		
 	g_debug("Receiver up & running");
 	
 	/* Waits for every thread previously created */
-	for (i = 0; i < g_queue_get_length(tData->qPlugins); i++)
+	if (fData->counter > 0)
 	{
-		auxPlugin = (Plugin*)g_queue_peek_nth(tData->qPlugins, i);
-		g_thread_join(auxPlugin->receiveThread);
+		for (i = 0; i < fData->counter; i++)
+		{
+			g_thread_join((GThread*)g_ptr_array_index(fData->pThreads, i));
+		}
 	}
-
+	else
+	{
+		g_critical("%s", NOTENOUGHTHREADS);
+	}
+	
 	return (NULL);
 }
