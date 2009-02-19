@@ -12,9 +12,34 @@
 #include "msg.h"
 #include "plugin.h"
 
+#include "composer.h"
+
+#define ROUTINGFILE			"routes.dat"
+#define MSGLOGFILE			"msg.log"
+
 /* Error messages */
+#define CANNOTLOCATEROUTEFILE	"Imposible encontrar archivo de rutas"
+#define CANNOTOPENMSGLOGFILE	"Imposible abrir el archivo de registro de mensajes"
+#define CANNOTOPENROUTINGFILE	"Imposible abrir el archivo de enrutado"
 #define CANNOTSENDDATA			"Imposible enviar datos con el complemento"
+#define CANNOTWRITEDATA			"Imposible grabar datos en el fichero"
 #define CANNOTLOADDISPATCHER	"Imposible enviar datos con el complemento"
+
+/* Module type definitions. */
+typedef struct _RoutingEntry
+{
+	gchar* msgProto;
+	GPatternSpec* msgAddrPattern;
+	gchar* destProto;
+	gchar* destAddress;
+	
+} RoutingEntry;
+
+/* Global variables. */
+static GQueue* routingTable;
+static GIOChannel* msgLog;
+static GData** dPlugins;
+static GAsyncQueue* qMessages;
 
 /* Funcion initDispatcher
  * Precondiciones:
@@ -26,6 +51,71 @@
 gboolean
 initDispatcher					(GData** dispatchConfig, gchar** error)
 {
+	gchar *routingFile, *msgLogFile, *buffer, **bufferSet;
+	GIOChannel* routing;
+	RoutingEntry* entry;
+	GError* channelError;
+	
+	/* Checks for routing file. 
+	 * */
+	if ((routingFile = g_datalist_get_data(dispatchConfig, "routing")) == NULL)
+	{
+		routingFile = ROUTINGFILE;
+	}
+	
+	if (!g_file_test(routingFile, G_FILE_TEST_EXISTS))
+	{
+		*error = g_strdup(CANNOTLOCATEROUTEFILE);
+		return (FALSE);
+	}
+	
+	/* Opens a GIOChannel to read whatever is into the file. */
+	if ((routing = g_io_channel_new_file(routingFile, "r", &channelError)) == NULL)
+	{
+		*error = g_strconcat(CANNOTOPENROUTINGFILE, ": ", channelError->message, NULL);
+		return (FALSE);
+	}
+	
+	/* Initialize routing table (queue). */
+	routingTable = g_queue_new();
+	
+	while (g_io_channel_read_line(routing, &buffer, NULL, NULL, &channelError) == G_IO_STATUS_NORMAL)
+	{
+		/* Ignore commented (# prefixed) lines. */
+		if (!g_str_has_prefix(buffer, "#"))
+		{
+			bufferSet = g_strsplit(buffer, " ", 4);
+			entry = g_new0(RoutingEntry, 1);
+			
+			entry->msgProto = g_strdup(bufferSet[0]);
+			entry->msgAddrPattern = g_pattern_spec_new(bufferSet[1]);
+			entry->destProto = g_strdup(bufferSet[2]);
+			entry->destAddress = g_strdup(bufferSet[3]);
+			
+			g_queue_push_tail(routingTable, entry);
+		}
+	}
+
+	/* Closes routing IO channel. */
+	if (g_io_channel_shutdown(routing, FALSE, &channelError) == (G_IO_STATUS_ERROR | G_IO_STATUS_AGAIN))
+	{
+		*error = g_strconcat(CANNOTOPENROUTINGFILE, ": ", channelError->message, NULL);
+		return (FALSE);
+	}
+	
+	/* Checks for message logging file.
+	 * */
+	if ((msgLogFile = g_datalist_get_data(dispatchConfig, "msglog")) == NULL)
+	{
+		msgLogFile = MSGLOGFILE;
+	}
+	
+	if ((msgLog = g_io_channel_new_file(msgLogFile, "w+", &channelError)) == NULL)
+	{
+		*error = g_strconcat(CANNOTOPENMSGLOGFILE, ": ", channelError->message, NULL);
+		return (FALSE);
+	}
+
 	return (TRUE);
 }
 
@@ -40,30 +130,80 @@ gpointer
 loadDispatcher					(gpointer data)
 {
 	ThreadData* tData;
-	Message* msg;
-	Plugin* aux;
+	Message *msg;
+	Plugin* plugin;
+	RoutingEntry* entry;
+	gint tableLength, i;
+	
+	GIOStatus ioStatus;
+	GError* ioError;
 	gchar** funcError;
-	GData* dPlugins;
 	
 	tData = data;
+	dPlugins = tData->dPlugins;
+	qMessages = tData->qMessages;
+	tableLength = g_queue_get_length(routingTable);
 	
 	/* Now the dispatcher is fully functional. */
 	g_debug("Dispatcher up & running");
 
 	/* Keeps sending data */
-	while ((tData->dPlugins != NULL) || (g_async_queue_length(tData->qMessages) > 0))
+	while (dPlugins != NULL)
 	{
-		if (g_async_queue_length(tData->qMessages) > 0)
+		if (g_async_queue_length(qMessages) > 0)
 		{
-			msg = g_async_queue_pop(tData->qMessages);
+			/* Gets a new message to dispatch. */
+			msg = g_async_queue_pop(qMessages);
 			
-			aux = g_datalist_get_data(tData->dPlugins, msg->proto);
+			/* Chooses a default plugin using the original message protocol. */
+			plugin = g_datalist_get_data(dPlugins, msg->proto);
 			
-			if (!aux->pluginSend((gpointer)msg->dest, (gpointer)msg, funcError))
+			/* Checks if the message has already reached its destination.
+			 * - If it has, it will be logged into a file.
+			 * - If it has not reached its destination and there is not a
+			 *   'route' defined for it, dispatch.
+			 * - If it has not reached its destination and there is a
+			 *   'route' defined for it, dispatch it through that way.
+			 * */
+			if (g_str_equal(msg->dest, plugin->pluginAddress()))
 			{
-				g_warning("%s: %s", CANNOTSENDDATA, *funcError);
+				/* Write to disk cache. */
+				ioStatus = g_io_channel_write_chars(msgLog,
+										g_strconcat(msg->proto, msg->src, msg->data, NULL),
+										-1, NULL, &ioError);
+				if (ioStatus == (G_IO_STATUS_ERROR | G_IO_STATUS_AGAIN))
+				{
+					g_warning("%s: %s", CANNOTWRITEDATA, ioError->message);
+				}
 			}
-		}	
+			else
+			{	
+				i = 0;
+				
+				/* Search for a route in the route table. */
+				do
+				{
+					entry = g_queue_peek_nth(routingTable, i);
+					
+					if (g_str_equal(entry->msgProto, msg->proto) &&
+						g_pattern_match_string(entry->msgAddrPattern, msg->dest))
+					{
+						plugin = g_datalist_get_data(dPlugins, entry->destProto);
+						i = tableLength;	
+					}
+					else
+					{
+						i++;
+					}
+				}
+				while (i < tableLength);
+
+				if (!plugin->pluginSend((gpointer)msg->dest, (gpointer)msg, funcError))
+				{
+					g_warning("%s: %s", CANNOTSENDDATA, *funcError);
+				}		
+			}
+		}
 	}
 
 	return (NULL);
