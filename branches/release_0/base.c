@@ -20,7 +20,7 @@
 #include "loader.h"
 #include "receiver.h"
 #include "dispatcher.h"
-#include "controller.h"
+#include "composer.h"
 
 /* Error messages */
 #define THREADSNOTSUPPORTED	"Threads not supported"
@@ -53,7 +53,7 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 	GData* receiveConfig;
 	GData* dispatchConfig;
 	GData* pluginSetConfig;
-	GData* controlConfig;
+	GData* composerConfig;
 
 	GError* threadError;
 	gchar* behaviour;
@@ -87,20 +87,6 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 	/* Fill base module configure options. */
 	behaviour = (gchar*)g_datalist_get_data(&baseConfig, "behaviour");
 	
-	/* *
-	 * Segunda fase (comprobacion y ejecucion de procesos):
-	 *  - Existe el directorio de los complementos.
-	 *  - El sistema puede cargar modulos dinamicamente.
-	 *  - El sistema puede utilizar hilos de ejecucion.
-	 *  - (Initdispatcher)
-	 * */
-	if (!(initPlugins(&pluginConfig, error) &&
-		  initReceivers(&receiveConfig, error) &&
-		  initDispatcher(&dispatchConfig, error)))
-	{
-		return (FALSE);
-	}
-	
 	/* Free memory containing configuration patterns already used. */
 	g_datalist_remove_data(&dConfig, "base");
 	g_datalist_remove_data(&dConfig, "plugins");
@@ -119,15 +105,29 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 	 *  - Explora el directorio de plugins y carga los ficheros.
 	 *  - Carga las funciones en las estructuras de plugin correspondientes.
 	 * */
-	if (!loadAllPlugins(&dPlugins, &dConfig, error))
+	if (!(initPlugins(&pluginConfig, error) && 
+		  loadAllPlugins(&dPlugins, &dConfig, error)))
 	{
 		return (FALSE);
 	}
 
-	/* DispatchManager manages the message dispatching process.
-	 * ReceiveManager creates execution threads needed for asynchronous
+	/* Initialize composer module configuration. */
+	if (!(initComposer(&composerConfig, error) &&
+		  loadComposer(&dPlugins, qMessages, error)))
+	{
+		return (FALSE);
+	}
+
+	/* Dispatcher manages the message dispatching process.
+	 * Receiveer creates execution threads needed for asynchronous
 	 * message reception.
 	 * */
+	if (!(initReceivers(&receiveConfig, error) &&
+		  initDispatcher(&dispatchConfig, error)))
+	{
+		return (FALSE);
+	}
+	
 	if ((dispatchThread = g_thread_create((GThreadFunc)&loadDispatcher,
 										  (gpointer)tData, TRUE, &threadError)) == NULL)
 	{
@@ -156,25 +156,10 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 	 * */
 	if (g_str_equal(behaviour, "server"))
 	{
-		
 		g_thread_join(receiveThread);
 		g_thread_join(dispatchThread);
 	}
-	else
-	{
-		/* Initialize controller module configuration. */
-		if (!(initController(&controlConfig, error)))
-		{
-			return (FALSE);
-		}
 		
-		/* Load all data needed for controller module. */
-		if (!(loadController(&dPlugins, qMessages, error)))
-		{
-			return (FALSE);
-		}
-	}
-	
 	return (TRUE);
 }
 

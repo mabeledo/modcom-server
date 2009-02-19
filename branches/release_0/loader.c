@@ -18,6 +18,8 @@
 	#define G_MODULE_SUFFIX "so"
 #endif
 
+#define PLUGINDIR				"./plugins"
+
 /* Error messages */
 #define LOADPLUGINERROR			"El complemento no ha sido cargado"
 #define INITIALIZEPLUGIN		"El complemento no ha podido ser cargado"
@@ -45,7 +47,10 @@ static gchar* directory;
 gboolean
 initPlugins					(GData** pluginConfig, gchar** error)
 {
-	directory = g_datalist_get_data(pluginConfig, "directory");
+	if ((directory = g_datalist_get_data(pluginConfig, "directory")) == NULL)
+	{
+		directory = PLUGINDIR;
+	}
 	
 	/* Checks for plugin directory. */
 	if (!g_file_test(directory, (G_FILE_TEST_EXISTS | G_FILE_TEST_IS_DIR)))
