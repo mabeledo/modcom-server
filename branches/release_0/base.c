@@ -83,7 +83,7 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 	pluginConfig = g_datalist_get_data(&dConfig, "plugins");
 	receiveConfig = g_datalist_get_data(&dConfig, "receive");
 	dispatchConfig = g_datalist_get_data(&dConfig, "dispatch");
-	
+
 	/* Fill base module configure options. */
 	behaviour = (gchar*)g_datalist_get_data(&baseConfig, "behaviour");
 	
