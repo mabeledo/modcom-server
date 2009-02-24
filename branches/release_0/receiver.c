@@ -114,5 +114,6 @@ loadAllReceivers				(gpointer data)
 		g_critical("%s", NOTENOUGHTHREADS);
 	}
 	
+	g_debug("End receiving process");
 	return (NULL);
 }

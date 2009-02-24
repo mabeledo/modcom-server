@@ -95,11 +95,7 @@ writeMessage				(const gchar* proto, const gchar* dest, const gchar* data, gchar
 							 		-1);
 	
 	g_async_queue_push(qMessages, msg);
-	
 	g_debug("Message pushed into the queue");
-	
-	/* Free data. */
-	g_free(msg);
 		
 	return (TRUE);
 }
