@@ -17,7 +17,7 @@
 #define LISTENPORT		31337
 #define INTERFACE		"wlan0"
 #define ADDRESS			"127.0.0.1"
-#define BUFFERLEN		2048
+#define BUFFERLEN		8192
 
 /* Error messages. */
 #define BINDERROR		"bind() error"
@@ -103,7 +103,7 @@ pluginInit							(gpointer data, gchar** error)
 			ifAttr = ifaces.ifc_req;
 			
 			for (i = 0; i < ifaces.ifc_len; i += ifreqSize)
-			{				
+			{
 				localAddr = (struct in_addr*)((ifAttr->ifr_ifru.ifru_addr.sa_data) + 2);
 
 				if (g_ascii_strcasecmp(ifAttr->ifr_ifrn.ifrn_name, interface) == 0)
@@ -145,7 +145,6 @@ pluginSend							(gpointer dest, gpointer data, gchar** error)
 	/* Posix socket support */
 	#ifdef G_OS_UNIX
 		gint clientSd, addrLen;
-		struct servent *server;
 		struct sockaddr_in addr;
 		
 		addrLen = sizeof(struct sockaddr_in);
@@ -156,16 +155,9 @@ pluginSend							(gpointer dest, gpointer data, gchar** error)
 			return (FALSE);
 		}
 		
-		/* Gets a struct servent for LISTENPORT port and TCP/IP protocol. */
-		if ((server = getservbyport(listenPort, "tcp")) == NULL)
-		{
-			*error = g_strdup(GETSERVERROR);
-			return (FALSE);
-		}
-		
 		bzero(&addr, addrLen);
 		addr.sin_family = AF_INET;
-		addr.sin_port = server->s_port;
+		addr.sin_port = listenPort;
 		
 		if (inet_aton(destAddress, &addr.sin_addr) == 0)
 		{

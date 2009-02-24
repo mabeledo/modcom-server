@@ -17,6 +17,8 @@
 #define ROUTINGFILE			"routes.dat"
 #define MSGLOGFILE			"msg.log"
 #define WAITPERIOD			1000
+#define SEPARATOR			"||"
+#define EOL					"\n"
 
 /* Error messages */
 #define CANNOTLOCATEROUTEFILE	"Imposible encontrar archivo de rutas"
@@ -25,6 +27,7 @@
 #define CANNOTSENDDATA			"Imposible enviar datos con el complemento"
 #define CANNOTWRITEDATA			"Imposible grabar datos en el fichero"
 #define CANNOTLOADDISPATCHER	"Imposible enviar datos con el complemento"
+#define MSGWRITEONLOG			"Mensaje escrito en el registro"
 
 /* Module type definitions. */
 typedef struct _RoutingEntry
@@ -136,12 +139,11 @@ gpointer
 loadDispatcher					(gpointer data)
 {
 	ThreadData* tData;
-	Message *msg;
+	Message* msg;
 	Plugin* plugin;
 	RoutingEntry* entry;
 	gint tableLength, i;
-	
-	GIOStatus ioStatus;
+
 	GError* ioError;
 	gchar** funcError;
 	
@@ -156,11 +158,12 @@ loadDispatcher					(gpointer data)
 	/* Keeps sending data */
 	while (dPlugins != NULL)
 	{
-		if (g_async_queue_length(qMessages) > 0)
-		{
-			/* Gets a new message to dispatch. */
-			msg = g_async_queue_pop(qMessages);
-			
+		/* Gets a new message to dispatch.
+		 * Trying to pop a message is actually more efficient than
+		 * search for at least one element in the queue.
+		 * */
+		if ((msg = (Message*)g_async_queue_try_pop(qMessages)) != NULL)
+		{	
 			/* Chooses a default plugin using the original message protocol. */
 			plugin = g_datalist_get_data(dPlugins, msg->proto);
 			
@@ -173,13 +176,21 @@ loadDispatcher					(gpointer data)
 			 * */
 			if (g_str_equal(msg->dest, plugin->pluginAddress()))
 			{
+				ioError = NULL;
+				
 				/* Write to disk cache. */
-				ioStatus = g_io_channel_write_chars(msgLog,
-										g_strconcat(msg->proto, msg->src, msg->data, NULL),
-										-1, NULL, &ioError);
-				if (ioStatus == (G_IO_STATUS_ERROR | G_IO_STATUS_AGAIN))
+				if ((g_io_channel_write_chars(msgLog,
+						g_strconcat(msg->proto, SEPARATOR, msg->src, SEPARATOR, msg->data, EOL, NULL),
+						-1, NULL,
+						&ioError) == (G_IO_STATUS_ERROR | G_IO_STATUS_AGAIN)) ||
+					(g_io_channel_flush(msgLog,
+						&ioError) == (G_IO_STATUS_ERROR | G_IO_STATUS_AGAIN)))
 				{
 					g_warning("%s: %s", CANNOTWRITEDATA, ioError->message);
+				}
+				else
+				{
+					g_debug(MSGWRITEONLOG);
 				}
 			}
 			else
@@ -215,5 +226,6 @@ loadDispatcher					(gpointer data)
 		}
 	}
 
+	g_debug("End dispatching process");
 	return (NULL);
 }

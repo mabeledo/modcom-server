@@ -1,8 +1,8 @@
 # Makefile
 
 # Global variables
-CC=gcc
-CFLAGS=`pkg-config --cflags glib-2.0` -fPIC -g -Wall -c
+CC=gcc -Wall -ggdb
+CFLAGS=`pkg-config --cflags glib-2.0` -fPIC -g -c
 LDFLAGS=`pkg-config --libs glib-2.0` -lc -shared -Wl,-soname,
 
 # Command format:
