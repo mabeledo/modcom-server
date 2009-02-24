@@ -12,4 +12,10 @@
 #include <glib/gprintf.h>
 #include <gmodule.h>
 
-#define MODCOM_SERVER_VERSION		"0.1"
+#define PROGRAM_NAME		"ModCom"
+#define ICON				"./modcom.png"
+#define VERSION				"0.1"
+#define WEBSITE_SERVER		"http://code.google.com/p/modcom-server/"
+#define WEBSITE_CLIENT		"http://code.google.com/p/modcom-client/"
+#define DESCRIPTION			"Modular communication client-server architecture"
+#define AUTHOR				"Manuel Angel Abeledo Garcia"

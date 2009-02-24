@@ -16,6 +16,7 @@
 
 #define ROUTINGFILE			"routes.dat"
 #define MSGLOGFILE			"msg.log"
+#define WAITPERIOD			1000
 
 /* Error messages */
 #define CANNOTLOCATEROUTEFILE	"Imposible encontrar archivo de rutas"
@@ -55,6 +56,8 @@ initDispatcher					(GData** dispatchConfig, gchar** error)
 	GIOChannel* routing;
 	RoutingEntry* entry;
 	GError* channelError;
+
+	channelError = NULL;
 	
 	/* Checks for routing file. 
 	 * */
@@ -78,21 +81,24 @@ initDispatcher					(GData** dispatchConfig, gchar** error)
 	
 	/* Initialize routing table (queue). */
 	routingTable = g_queue_new();
-	
+
 	while (g_io_channel_read_line(routing, &buffer, NULL, NULL, &channelError) == G_IO_STATUS_NORMAL)
 	{
-		/* Ignore commented (# prefixed) lines. */
+		/* Ignore commented (# prefixed) and empty lines. */
 		if (!g_str_has_prefix(buffer, "#"))
 		{
 			bufferSet = g_strsplit(buffer, " ", 4);
-			entry = g_new0(RoutingEntry, 1);
-			
-			entry->msgProto = g_strdup(bufferSet[0]);
-			entry->msgAddrPattern = g_pattern_spec_new(bufferSet[1]);
-			entry->destProto = g_strdup(bufferSet[2]);
-			entry->destAddress = g_strdup(bufferSet[3]);
-			
-			g_queue_push_tail(routingTable, entry);
+			if (g_strv_length(bufferSet) == (guint)4)
+			{
+				entry = g_new0(RoutingEntry, 1);
+				
+				entry->msgProto = g_strdup(bufferSet[0]);
+				entry->msgAddrPattern = g_pattern_spec_new(bufferSet[1]);
+				entry->destProto = g_strdup(bufferSet[2]);
+				entry->destAddress = g_strdup(bufferSet[3]);
+				
+				g_queue_push_tail(routingTable, entry);
+			}
 		}
 	}
 
@@ -115,7 +121,7 @@ initDispatcher					(GData** dispatchConfig, gchar** error)
 		*error = g_strconcat(CANNOTOPENMSGLOGFILE, ": ", channelError->message, NULL);
 		return (FALSE);
 	}
-
+	
 	return (TRUE);
 }
 
@@ -181,7 +187,7 @@ loadDispatcher					(gpointer data)
 				i = 0;
 				
 				/* Search for a route in the route table. */
-				do
+				while (i < tableLength)
 				{
 					entry = g_queue_peek_nth(routingTable, i);
 					
@@ -196,13 +202,16 @@ loadDispatcher					(gpointer data)
 						i++;
 					}
 				}
-				while (i < tableLength);
 
 				if (!plugin->pluginSend((gpointer)msg->dest, (gpointer)msg, funcError))
 				{
 					g_warning("%s: %s", CANNOTSENDDATA, *funcError);
 				}		
 			}
+		}
+		else
+		{
+			g_usleep(WAITPERIOD);
 		}
 	}
 
