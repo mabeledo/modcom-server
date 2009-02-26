@@ -15,8 +15,17 @@
 #include "msg.h"
 #include "plugin.h"
 
+#define CANNOTLOCATEMSGLOGFILE	"Imposible encontrar archivo de registro de mensajes"
+#define CANNOTOPENMSGLOGFILE	"Imposible abrir el archivo de registro de mensajes"
+#define CANNOTREADDATA			"Imposible leer datos del fichero"
+#define CANNOTFORMATMSG			"Imposible formatear mensaje"
+
+#define MSGLOGFILE			"msg.log"
+#define DELIMITER			"||"
+
 static GAsyncQueue* qMessages;
 static GData** dPlugins;
+static GIOChannel* msgLog;
 
 /* Funcion initComposer
  * Precondiciones:
@@ -28,6 +37,30 @@ static GData** dPlugins;
 gboolean
 initComposer				(GData** composerConfig, gchar** error)
 {	
+	gchar* msgLogFile;
+	GError* channelError;
+
+	channelError = NULL;
+	
+	/* Checks for message logging file. */
+	if ((msgLogFile = g_datalist_get_data(composerConfig, "msglog")) == NULL)
+	{
+		msgLogFile = MSGLOGFILE;
+	}
+	
+	if (!g_file_test(msgLogFile, G_FILE_TEST_EXISTS))
+	{
+		*error = g_strdup(CANNOTLOCATEMSGLOGFILE);
+		return (FALSE);
+	}
+	
+	/* Opens a GIOChannel to read whatever is into the file. */
+	if ((msgLog = g_io_channel_new_file(msgLogFile, "r", &channelError)) == NULL)
+	{
+		*error = g_strconcat(CANNOTOPENMSGLOGFILE, ": ", channelError->message, NULL);
+		return (FALSE);
+	}
+	
 	return (TRUE);
 }
 
@@ -108,13 +141,50 @@ writeMessage				(const gchar* proto, const gchar* dest, const gchar* data, gchar
  * Proceso: 
  * */
 gboolean
-readMessage					(gchar* data, gchar** error)
+readMessage					(gchar** data, gchar** error)
+{	
+	gchar* line;
+	gchar** split;
+	GError* ioError;
+	
+	ioError = NULL;
+	
+	if (g_io_channel_read_line(msgLog, &line, NULL, NULL, &ioError) == 
+								(G_IO_STATUS_ERROR | G_IO_STATUS_AGAIN))
+	{
+		*error = g_strconcat(CANNOTREADDATA, ": ", ioError->message, NULL);
+		return (FALSE);	
+	}
+	
+	split = g_strsplit(line, DELIMITER, 0);
+	
+	
+	if ((*data 
+			= g_strdup_printf("Protocol: %s Source: %s Message: %s", 
+								split[0], split[1], split[2])) == NULL)
+	{
+		*error = g_strdup(CANNOTFORMATMSG);
+		return (FALSE);
+	}
+	
+	return (TRUE);
+}
+
+/* Funcion readQueuedMessage
+ * Precondiciones:
+ * Postcondiciones:
+ * Entrada: 
+ * Salida: 
+ * Proceso: 
+ * */
+gboolean
+readQueuedMessage			(gchar** data, gchar** error)
 {
 	Message* msg;
 	
 	msg = g_async_queue_pop(qMessages);
 	
-	g_sprintf(data, "%s  %s  %s  %s", msg->proto, msg->src, msg->dest, msg->data);
+	g_sprintf(*data, "%s  %s  %s  %s", msg->proto, msg->src, msg->dest, msg->data);
 	
 	return (TRUE);
 }

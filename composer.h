@@ -50,4 +50,14 @@ writeMessage				(const gchar*, const gchar*, const gchar*, gchar**);
 gboolean
 readMessage					(gchar**, gchar**);
 
+/* Funcion readQueuedMessage
+ * Precondiciones:
+ * Postcondiciones:
+ * Entrada: 
+ * Salida: 
+ * Proceso: 
+ * */
+gboolean
+readQueuedMessage			(gchar**, gchar**);
+
 #endif
