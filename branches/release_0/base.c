@@ -83,9 +83,15 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 	pluginConfig = g_datalist_get_data(&dConfig, "plugins");
 	receiveConfig = g_datalist_get_data(&dConfig, "receive");
 	dispatchConfig = g_datalist_get_data(&dConfig, "dispatch");
-
+	composerConfig = g_datalist_get_data(&dConfig, "composer");
+	
 	/* Fill base module configure options. */
 	behaviour = (gchar*)g_datalist_get_data(&baseConfig, "behaviour");
+	
+	/* Quick hack to use the same log file in all modules that need it. */
+	g_datalist_set_data(&composerConfig,
+				"msglog",
+				g_datalist_get_data(&dispatchConfig, "msglog"));
 	
 	/* Free memory containing configuration patterns already used. */
 	g_datalist_remove_data(&dConfig, "base");

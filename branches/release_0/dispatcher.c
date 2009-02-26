@@ -17,7 +17,7 @@
 #define ROUTINGFILE			"routes.dat"
 #define MSGLOGFILE			"msg.log"
 #define WAITPERIOD			1000
-#define SEPARATOR			"||"
+#define DELIMITER			"||"
 #define EOL					"\n"
 
 /* Error messages */
@@ -180,7 +180,7 @@ loadDispatcher					(gpointer data)
 				
 				/* Write to disk cache. */
 				if ((g_io_channel_write_chars(msgLog,
-						g_strconcat(msg->proto, SEPARATOR, msg->src, SEPARATOR, msg->data, EOL, NULL),
+						g_strconcat(msg->proto, DELIMITER, msg->src, DELIMITER, msg->data, EOL, NULL),
 						-1, NULL,
 						&ioError) == (G_IO_STATUS_ERROR | G_IO_STATUS_AGAIN)) ||
 					(g_io_channel_flush(msgLog,
