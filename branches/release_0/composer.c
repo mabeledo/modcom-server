@@ -156,15 +156,17 @@ readMessage					(gchar** data, gchar** error)
 		return (FALSE);	
 	}
 	
-	split = g_strsplit(line, DELIMITER, 0);
-	
-	
-	if ((*data 
-			= g_strdup_printf("Protocol: %s Source: %s Message: %s", 
-								split[0], split[1], split[2])) == NULL)
+	if (line != NULL)
 	{
-		*error = g_strdup(CANNOTFORMATMSG);
-		return (FALSE);
+		split = g_strsplit(line, DELIMITER, 0);
+		
+		if ((*data 
+				= g_strdup_printf("Protocol: %s Source: %s Message: %s", 
+									split[0], split[1], split[2])) == NULL)
+		{
+			*error = g_strdup(CANNOTFORMATMSG);
+			return (FALSE);
+		}
 	}
 	
 	return (TRUE);
