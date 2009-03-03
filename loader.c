@@ -91,7 +91,7 @@ loadPlugin			(const gchar* fileName, GData** config, gchar** error)
 	gpointer (*pluginReceive) (gpointer data);
 	gboolean (*pluginExit) (gchar** error);
 	
-	plugin = g_new0(Plugin, 1);
+	plugin = g_slice_new0(Plugin);
 	plugin->filename = g_strdup(fileName);
 	plugin->config = g_memdup(config, sizeof(config));
 

@@ -78,7 +78,15 @@ initDispatcher					(GData** dispatchConfig, gchar** error)
 	/* Opens a GIOChannel to read whatever is into the file. */
 	if ((routing = g_io_channel_new_file(routingFile, "r", &channelError)) == NULL)
 	{
-		*error = g_strconcat(CANNOTOPENROUTINGFILE, ": ", channelError->message, NULL);
+		if (channelError != NULL)
+		{
+			*error = g_strconcat(CANNOTOPENROUTINGFILE, ": ", channelError->message, NULL);
+		}
+		else
+		{
+			*error = g_strconcat(CANNOTOPENROUTINGFILE, ": ", NOERRORAVAILABLE, NULL);
+		}
+		
 		return (FALSE);
 	}
 	
@@ -93,7 +101,7 @@ initDispatcher					(GData** dispatchConfig, gchar** error)
 			bufferSet = g_strsplit(buffer, " ", 4);
 			if (g_strv_length(bufferSet) == (guint)4)
 			{
-				entry = g_new0(RoutingEntry, 1);
+				entry = g_slice_new0(RoutingEntry);
 				
 				entry->msgProto = g_strdup(bufferSet[0]);
 				entry->msgAddrPattern = g_pattern_spec_new(bufferSet[1]);
@@ -104,16 +112,17 @@ initDispatcher					(GData** dispatchConfig, gchar** error)
 			}
 		}
 	}
+	
+	/* TODO: warning message for previous error. */
 
-	/* Closes routing IO channel. */
+	/* Close routing IO channel. */
 	if (g_io_channel_shutdown(routing, FALSE, &channelError) == (G_IO_STATUS_ERROR | G_IO_STATUS_AGAIN))
 	{
 		*error = g_strconcat(CANNOTOPENROUTINGFILE, ": ", channelError->message, NULL);
 		return (FALSE);
 	}
 	
-	/* Checks for message logging file.
-	 * */
+	/* Check for message logging file. */
 	if ((msgLogFile = g_datalist_get_data(dispatchConfig, "msglog")) == NULL)
 	{
 		msgLogFile = MSGLOGFILE;
@@ -121,7 +130,15 @@ initDispatcher					(GData** dispatchConfig, gchar** error)
 	
 	if ((msgLog = g_io_channel_new_file(msgLogFile, "w+", &channelError)) == NULL)
 	{
-		*error = g_strconcat(CANNOTOPENMSGLOGFILE, ": ", channelError->message, NULL);
+		if (channelError != NULL)
+		{
+			*error = g_strconcat(CANNOTOPENMSGLOGFILE, ": ", channelError->message, NULL);
+		}
+		else
+		{
+			*error = g_strconcat(CANNOTOPENMSGLOGFILE, ": ", NOERRORAVAILABLE, NULL);
+		}
+		
 		return (FALSE);
 	}
 	
@@ -179,14 +196,21 @@ loadDispatcher					(gpointer data)
 				ioError = NULL;
 				
 				/* Write to disk cache. */
-				if ((g_io_channel_write_chars(msgLog,
+				if (!((g_io_channel_write_chars(msgLog,
 						g_strconcat(msg->proto, DELIMITER, msg->src, DELIMITER, msg->data, EOL, NULL),
 						-1, NULL,
-						&ioError) == (G_IO_STATUS_ERROR | G_IO_STATUS_AGAIN)) ||
+						&ioError) == (G_IO_STATUS_ERROR | G_IO_STATUS_AGAIN)) &&
 					(g_io_channel_flush(msgLog,
-						&ioError) == (G_IO_STATUS_ERROR | G_IO_STATUS_AGAIN)))
+						&ioError) == (G_IO_STATUS_ERROR | G_IO_STATUS_AGAIN))))
 				{
-					g_warning("%s: %s", CANNOTWRITEDATA, ioError->message);
+					if (ioError != NULL)
+					{
+						g_warning("%s: %s", CANNOTWRITEDATA, ioError->message);
+					}
+					else
+					{
+						g_warning("%s: %s", CANNOTWRITEDATA, NOERRORAVAILABLE);
+					}
 				}
 				else
 				{

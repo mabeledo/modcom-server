@@ -19,3 +19,5 @@
 #define WEBSITE_CLIENT		"http://code.google.com/p/modcom-client/"
 #define DESCRIPTION			"Modular communication client-server architecture"
 #define AUTHOR				"Manuel Angel Abeledo Garcia"
+
+#define NOERRORAVAILABLE	"Motivo desconocido"

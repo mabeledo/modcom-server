@@ -91,7 +91,7 @@ loadAllReceivers				(gpointer data)
 	
 	tData = data;
 	dPlugins = tData->dPlugins;
-	fData = g_malloc0(sizeof(ForeachData));
+	fData = g_new0(ForeachData, 1);
 	fData->qMessages = tData->qMessages;
 	fData->pThreads = g_ptr_array_new();
 	fData->counter = 0;
