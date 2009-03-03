@@ -57,7 +57,15 @@ initComposer				(GData** composerConfig, gchar** error)
 	/* Opens a GIOChannel to read whatever is into the file. */
 	if ((msgLog = g_io_channel_new_file(msgLogFile, "r", &channelError)) == NULL)
 	{
-		*error = g_strconcat(CANNOTOPENMSGLOGFILE, ": ", channelError->message, NULL);
+		if (channelError != NULL)
+		{
+			*error = g_strconcat(CANNOTOPENMSGLOGFILE, ": ", channelError->message, NULL);
+		}
+		else
+		{
+			*error = g_strconcat(CANNOTOPENMSGLOGFILE, ": ", NOERRORAVAILABLE, NULL);
+		}
+		
 		return (FALSE);
 	}
 	
@@ -152,7 +160,15 @@ readMessage					(gchar** data, gchar** error)
 	if (g_io_channel_read_line(msgLog, &line, NULL, NULL, &ioError) == 
 								(G_IO_STATUS_ERROR | G_IO_STATUS_AGAIN))
 	{
-		*error = g_strconcat(CANNOTREADDATA, ": ", ioError->message, NULL);
+		if (ioError != NULL)
+		{
+			*error = g_strconcat(CANNOTREADDATA, ": ", ioError->message, NULL);
+		}
+		else
+		{
+			*error = g_strconcat(CANNOTREADDATA, ": ", NOERRORAVAILABLE, NULL);
+		}
+		
 		return (FALSE);	
 	}
 	

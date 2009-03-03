@@ -48,11 +48,9 @@ loadConfigFile				(const gchar* filename, GData** dConfig, gchar** error)
 	GKeyFile* kConfig;
 	GData* auxConfig;
 	gchar** groups;
-	gint length;
 	
 	gchar** keys;
-	gint i;
-	gint j;
+	guint i, j, length;
 	
 	kConfig = g_key_file_new();
 	g_datalist_init(dConfig);

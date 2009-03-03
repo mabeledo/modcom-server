@@ -8,11 +8,25 @@
  ********************************************************************/
 
 #include <glib.h>
+#include <signal.h>
+#include <stdlib.h>
+
 
 #include "base.h"
 
 #define MODCOM_SERVER_VERSION	"0.1"
 #define MODCOM_CFG				"modcom.cfg"
+
+/* Funcion endProcess
+ * Precondiciones:
+ * Postcondiciones:
+ * Funcion de entrada del sistema de servidor
+ * Recibe una serie de parametros genericos como (d)ebug, (v)erbose...
+ * Pertenece al alto nivel
+ * */
+static void
+endProcess			(gint);
+
 
 /* Funcion main
  * Precondiciones:
@@ -32,6 +46,7 @@ main				(int argc, char *argv[])
 	gboolean optVerbose = FALSE;
 	gboolean optDaemon = FALSE;
 	gboolean optVersion = FALSE;
+
 	GError* error = NULL;
 	gchar* returnError = "";
 	gchar* optConfig = MODCOM_CFG;
@@ -47,6 +62,13 @@ main				(int argc, char *argv[])
 	};
 	
 	GOptionContext *context;
+	
+	/* Check for GLib dependencies. */
+	if (!GLIB_CHECK_VERSION(2, 12, 0))
+	{
+		g_critical("Version de GLib incorrecta. Se necesita al menos la version 2.12.");
+		return (-1);
+	}
 
 	/* Manejo de opciones de la linea de comandos */
 	context = g_option_context_new("- servidor del sistema ModCom");
@@ -59,7 +81,7 @@ main				(int argc, char *argv[])
 	if (error)
 	{
 		g_print("Opcion desconocida.\nUtiliza --help para ver la ayuda\n");
-		return(-1);
+		return(-2);
 	}
 	
 	if (optVersion)
@@ -83,9 +105,13 @@ main				(int argc, char *argv[])
 		while (argv[i] != NULL)
 		{
 			if (g_str_equal(argv[i], "-D") == TRUE)
+			{
 				g_stpcpy(argv[i], NULL);
+			}
 			else
+			{
 				i++;
+			}
 		}
 		/* Crea el nuevo proceso.
 		 * Redirige la salida a /dev/null, por lo que no aparecera ningun
@@ -94,23 +120,52 @@ main				(int argc, char *argv[])
 		if (!g_spawn_async(NULL, argv, NULL, (G_SPAWN_DO_NOT_REAP_CHILD | G_SPAWN_STDOUT_TO_DEV_NULL),
 						   NULL, NULL, NULL, &error))
 		{
-			g_critical("Imposible cargar el programa como demonio: %s", error->message);
-			return (-2);
+			if (error != NULL)
+			{
+				g_critical("Imposible cargar el programa como demonio: %s", error->message);
+			}
+			else
+			{
+				g_critical("Imposible cargar el programa como demonio. Razon desconocida.");
+			}
+			
+			return (-3);
 		}
 		
 		return (1);
 	}
+
+	/* Catch termination signals. */
+	signal(SIGINT, endProcess);
+	signal(SIGTERM, endProcess);
+	signal(SIGKILL, endProcess);
 	
-	/* Proceso */
 	if (!initBaseSystem(optConfig, &returnError))
 	{
 		g_critical("%s", returnError);
-		return (-3);	
+		return (-4);	
 	}
 
-	g_print("Parent process done...\n");
 	return(0);
 }
+
+static void
+endProcess			(gint sig)
+{
+	gchar* errorMsg;
+	
+	if (!closeBaseSystem(&errorMsg))
+	{
+		g_print("\nParent process terminated by signal %d\nErrors reported: %s", sig, errorMsg);
+	}
+	else
+	{
+		g_print("\nParent process terminated by signal %d.\n", sig);
+	}
+	
+	exit(sig);
+}
+
 
 /*
  * VERSION 0.1
