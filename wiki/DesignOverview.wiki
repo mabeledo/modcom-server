@@ -6,5 +6,3 @@
 Here i will show how the application is organized internally ("modularized"). As C is not object-oriented, UML-based design is somewhat crappy. C files are treated as UML objects, with public (exported via header files) and private (marked as "static") variables and functions.
 
 = Class diagram =
-
-http://modcom-server.googlecode.com/files/core.png
