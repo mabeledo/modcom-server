@@ -37,7 +37,7 @@
  * */
 static gchar* directory;
 
-/* Funcion initPluginFiles
+/* Funcion initPlugins
  * Precondiciones:
  * Postcondiciones:
  * Entrada:
@@ -142,7 +142,7 @@ loadPlugin			(const gchar* fileName, GData** config, gchar** error)
 }
 
 
-/* Funcion loadAllPluginFiles
+/* Funcion loadAllPlugins
  * Precondiciones:
  * Postcondiciones:
  * Entrada:

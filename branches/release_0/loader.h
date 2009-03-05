@@ -10,7 +10,7 @@
 #ifndef LOADER_H
 #define LOADER_H
 
-/* Funcion initPluginFiles
+/* Funcion initPlugins
  * Precondiciones:
  * Postcondiciones:
  * Entrada:
