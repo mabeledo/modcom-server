@@ -1,10 +1,10 @@
 /********************************************************************
  *  Proyecto: Sistema modular de comunicacion con un robot movil
  *  Subproyecto: Servidor
- *  Archivo: controller.c
+ *  Archivo: composer.c
  * 	Version: 0.1
  *  
- *  Currently the controller module does not check for invalid protocols,
+ *  Currently the composer module does not check for invalid protocols,
  *  i.e. protocols that are not supported by any plugin in the system.
  * 
  * 

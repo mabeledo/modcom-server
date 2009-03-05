@@ -42,8 +42,6 @@ typedef struct _RoutingEntry
 /* Global variables. */
 static GQueue* routingTable;
 static GIOChannel* msgLog;
-static GData** dPlugins;
-static GAsyncQueue* qMessages;
 
 /* Funcion initDispatcher
  * Precondiciones:
@@ -159,6 +157,8 @@ loadDispatcher					(gpointer data)
 	Message* msg;
 	Plugin* plugin;
 	RoutingEntry* entry;
+	GData** dPlugins;
+	GAsyncQueue* qMessages;
 	gint tableLength, i;
 
 	GError* ioError;
