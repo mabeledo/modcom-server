@@ -2,15 +2,15 @@
  *  Proyecto: Sistema modular de comunicacion con un robot movil
  *  Subproyecto: Servidor
  *  Archivo: base.h
- * 	Version: 0.1
+ * 	Version: 1.0
  *
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
 
-#define CONFIGDIRECTORY		"config_dir"
-
 #ifndef BASE_H
 #define BASE_H
+
+#define CONFIGDIRECTORY		"."
 
 /* Funcion initBaseSystem
  * Precondiciones:

@@ -2,7 +2,7 @@
  *  Proyecto: Sistema modular de comunicacion con un robot movil
  *  Subproyecto: Servidor
  *  Archivo: config.h
- * 	Version: 0.1
+ * 	Version: 1.0
  *
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/

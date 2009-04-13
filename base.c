@@ -2,7 +2,7 @@
  *  Proyecto: Sistema modular de comunicacion con un robot movil
  *  Subproyecto: Servidor
  *  Archivo: base.c
- * 	Version: 0.1
+ * 	Version: 1.0
  *
  *  Application entry point. All operations are initialized and managed
  *  here, so base.c is a interface to the "view" side of the
@@ -12,15 +12,12 @@
  ********************************************************************/
 
 #include "general.h"
-#include "msg.h"
-#include "plugin.h"
 #include "thread.h"
 
 #include "config.h"
 #include "loader.h"
 #include "receiver.h"
 #include "dispatcher.h"
-#include "composer.h"
 
 /* Error messages */
 #define THREADSNOTSUPPORTED	"Threads not supported"
@@ -53,7 +50,6 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 	GData* receiveConfig;
 	GData* dispatchConfig;
 	GData* pluginSetConfig;
-	GData* composerConfig;
 
 	GError* threadError;
 	gchar* behaviour;
@@ -83,26 +79,21 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 	pluginConfig = g_datalist_get_data(&dConfig, "plugins");
 	receiveConfig = g_datalist_get_data(&dConfig, "receive");
 	dispatchConfig = g_datalist_get_data(&dConfig, "dispatch");
-	composerConfig = g_datalist_get_data(&dConfig, "composer");
 	
 	/* Fill base module configure options. */
 	behaviour = (gchar*)g_datalist_get_data(&baseConfig, "behaviour");
-	
-	/* Quick hack to use the same log file in all modules that need it. */
-	g_datalist_set_data(&composerConfig,
-				"msglog",
-				g_datalist_get_data(&dispatchConfig, "msglog"));
 	
 	/* Free memory containing configuration patterns already used. */
 	g_datalist_remove_data(&dConfig, "base");
 	g_datalist_remove_data(&dConfig, "plugins");
 	g_datalist_remove_data(&dConfig, "receive");
 	g_datalist_remove_data(&dConfig, "dispatch");
+	
 	pluginSetConfig = dConfig;
 	
 	/* Inicializa la cola de plugins y de mensajes. */
-	g_datalist_init(&dPlugins);
 	qMessages = g_async_queue_new();
+	g_datalist_init(&dPlugins);
 	tData = g_new0(ThreadData, 1);
 	tData->dPlugins = &dPlugins;
 	tData->qMessages = qMessages;
@@ -113,13 +104,6 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 	 * */
 	if (!(initPlugins(&pluginConfig, error) && 
 		  loadAllPlugins(&dPlugins, &dConfig, error)))
-	{
-		return (FALSE);
-	}
-
-	/* Initialize composer module configuration. */
-	if (!(initComposer(&composerConfig, error) &&
-		  loadComposer(&dPlugins, qMessages, error)))
 	{
 		return (FALSE);
 	}
@@ -155,6 +139,10 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 											NULL);
 		return (FALSE);
 	}
+
+	/* Free memory. */
+	g_datalist_clear(&baseConfig);
+	g_datalist_clear(&dConfig);
 
 	/* Waits for both threads if the process was initialized by a server,
 	 * not a client.

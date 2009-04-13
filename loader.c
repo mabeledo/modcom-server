@@ -2,7 +2,7 @@
  *  Proyecto: Sistema modular de comunicacion con un robot movil
  *  Subproyecto: Servidor
  *  Archivo: loader.c
- * 	Version: 0.1
+ * 	Version: 1.0
  *
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
@@ -66,6 +66,8 @@ initPlugins					(GData** pluginConfig, gchar** error)
 		return (FALSE);
 	}
 
+	/* Free memory and exit. */
+	g_datalist_clear(pluginConfig);
 	return (TRUE);
 }
 
@@ -93,7 +95,6 @@ loadPlugin			(const gchar* fileName, GData** config, gchar** error)
 	
 	plugin = g_slice_new0(Plugin);
 	plugin->filename = g_strdup(fileName);
-	plugin->config = g_memdup(config, sizeof(config));
 
 	plugin->module = g_module_open(plugin->filename, G_MODULE_BIND_LOCAL);
 	
@@ -132,7 +133,7 @@ loadPlugin			(const gchar* fileName, GData** config, gchar** error)
 	 * The first parameter is a GData filled with the plugin configuration
 	 * options.
 	 * */
-	if ((plugin->pluginInit((gpointer)plugin->config, error)) == FALSE)
+	if ((plugin->pluginInit((gpointer)config, error)) == FALSE)
 	{
 		*error = g_strconcat(INITIALIZEPLUGIN, ": ", *error, NULL);
 		return (NULL);
