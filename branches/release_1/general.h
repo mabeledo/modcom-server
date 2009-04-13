@@ -10,7 +10,6 @@
 
 #include <glib.h>
 #include <glib/gprintf.h>
-#include <gmodule.h>
 
 #define PROGRAM_NAME		"ModCom"
 #define ICON				"./modcom.png"
