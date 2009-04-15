@@ -132,10 +132,9 @@ loadPlugin			(const gchar* fileName, GData** config, gchar** error)
 	/* Initialize module.
 	 * The first parameter is a GData filled with the plugin configuration
 	 * options.
-	 * */
+	 * */	
 	if ((plugin->pluginInit((gpointer)config, error)) == FALSE)
 	{
-		*error = g_strconcat(INITIALIZEPLUGIN, ": ", *error, NULL);
 		return (NULL);
 	}
 
