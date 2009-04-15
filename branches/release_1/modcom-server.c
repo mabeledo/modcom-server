@@ -2,7 +2,7 @@
  *  Proyecto: Sistema modular de comunicacion con un robot movil
  *  Subproyecto: Servidor
  *  Archivo: modcom-server.c
- * 	Version: 0.1
+ * 	Version: 1.0
  *
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
@@ -14,7 +14,7 @@
 
 #include "base.h"
 
-#define MODCOM_SERVER_VERSION	"0.1"
+#define MODCOM_SERVER_VERSION	"1.0"
 #define MODCOM_CFG				"modcom.cfg"
 
 /* Funcion endProcess
@@ -25,8 +25,21 @@
  * Pertenece al alto nivel
  * */
 static void
-endProcess			(gint);
-
+endProcess			(gint sig)
+{
+	gchar* errorMsg;
+	
+	if (!closeBaseSystem(&errorMsg))
+	{
+		g_print("\nParent process terminated with signal %d\nErrors reported: %s\n", sig, errorMsg);
+	}
+	else
+	{
+		g_print("\nParent process terminated with signal %d.\nNo errors.\n", sig);
+	}
+	
+	exit(sig);
+}
 
 /* Funcion main
  * Precondiciones:
@@ -148,25 +161,3 @@ main				(int argc, char *argv[])
 
 	return(0);
 }
-
-static void
-endProcess			(gint sig)
-{
-	gchar* errorMsg;
-	
-	if (!closeBaseSystem(&errorMsg))
-	{
-		g_print("\nParent process terminated by signal %d\nErrors reported: %s", sig, errorMsg);
-	}
-	else
-	{
-		g_print("\nParent process terminated by signal %d.\n", sig);
-	}
-	
-	exit(sig);
-}
-
-
-/*
- * VERSION 0.1
- * */
