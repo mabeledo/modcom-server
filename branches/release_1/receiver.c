@@ -19,7 +19,7 @@
 typedef struct 
 _ForeachData
 {
-	GAsyncQueue* qMessages;
+	ThreadData* tData;
 	GPtrArray* pThreads;
 	gint counter;
 } ForeachData;
@@ -59,7 +59,7 @@ loadReceiver					(GQuark key, gpointer data, gpointer user_data)
 	fData = (ForeachData*)user_data;
 
 	/* Creacion del hilo de recepcion, almacenamiento de la referencia en la cola */
-	receiveThread = g_thread_create(plugin->pluginReceive, (gpointer)fData->qMessages, TRUE, &threadError);
+	receiveThread = g_thread_create(plugin->pluginReceive, (gpointer)fData->tData, TRUE, &threadError);
 
 	if (threadError != NULL)
 	{
@@ -88,15 +88,15 @@ loadReceiver					(GQuark key, gpointer data, gpointer user_data)
 gpointer
 loadAllReceivers				(gpointer data)
 {
-	ThreadData* tData;
+	ExtThreadData* etData;
 	ForeachData* fData;
 	GData** dPlugins;
 	gint i;
-	
-	tData = data;
-	dPlugins = tData->dPlugins;
+
+	etData = data;
+	dPlugins = etData->dPlugins;
 	fData = g_new0(ForeachData, 1);
-	fData->qMessages = tData->qMessages;
+	fData->tData = etData->tData;
 	fData->pThreads = g_ptr_array_new();
 	fData->counter = 0;
 	
@@ -117,7 +117,19 @@ loadAllReceivers				(gpointer data)
 	{
 		g_critical("%s", NOTENOUGHTHREADS);
 	}
-	
-	g_debug("End receiving process");
+
 	return (NULL);
+}
+
+/* Funcion closeReceivers
+ * Precondiciones:
+ * Postcondiciones:
+ * Entrada: 
+ * Salida: 
+ * Proceso: 
+ * */
+gboolean
+closeReceivers					(gchar** error)
+{
+	return (TRUE);
 }

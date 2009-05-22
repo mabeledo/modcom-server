@@ -1,4 +1,4 @@
 # Routing table file.
-# Format: [Message protocol] [Message destination pattern] [Real destination protocol] [Real destination address]
+# Format: [Message protocol] [Message source pattern] [Real destination protocol] [Real destination address]
 
-TCPIP 192.168.*.* TCPIP 127.0.0.1
+TCPIP 127.* TCPIP 127.0.0.1

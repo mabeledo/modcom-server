@@ -10,8 +10,6 @@
 #ifndef BASE_H
 #define BASE_H
 
-#define CONFIGDIRECTORY		"."
-
 /* Funcion initBaseSystem
  * Precondiciones:
  * Postcondiciones:

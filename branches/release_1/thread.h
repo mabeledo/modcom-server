@@ -8,12 +8,19 @@
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
 
-/*
- * Struct containing all data needed for creating receive or
- * dispatch threads. 
- * */
 typedef struct _ThreadData
 {
-	GData** dPlugins;
 	GAsyncQueue* qMessages;
+	GMutex* mutex;
+	
+	/* This should be used only with g_atomic_int_set() 
+	 * when it's modified in a thread. 
+	 * */
+	gboolean* exitFlag;
 } ThreadData;
+
+typedef struct _ExtThreadData
+{
+	GData** dPlugins;
+	ThreadData* tData;
+} ExtThreadData;

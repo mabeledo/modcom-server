@@ -21,6 +21,7 @@
 #define CANNOTSENDDATA			"Imposible enviar datos con el complemento"
 #define CANNOTWRITEDATA			"Imposible grabar datos en el fichero"
 #define CANNOTLOADDISPATCHER	"Imposible enviar datos con el complemento"
+#define	CANNOTCLOSEDISPATCHER	"Cannot close dispatcher properly"
 
 /* Module type definitions. */
 typedef struct _RoutingEntry
@@ -127,26 +128,30 @@ initDispatcher					(GData** dispatchConfig, gchar** error)
 gpointer
 loadDispatcher					(gpointer data)
 {
-	ThreadData* tData;
+	ExtThreadData* etData;
+	GData** dPlugins;
+	GAsyncQueue* qMessages;
+	gboolean* exitFlag;
+	
 	Message* msg;
 	Plugin* plugin;
 	RoutingEntry* entry;
-	GData** dPlugins;
-	GAsyncQueue* qMessages;
+	
 	gint tableLength, i;
+	gchar *funcError;
+	gboolean found;
 	
-	gchar** funcError;
-	
-	tData = data;
-	dPlugins = tData->dPlugins;
-	qMessages = g_async_queue_ref((GAsyncQueue*)tData->qMessages);
+	etData = data;
+	dPlugins = etData->dPlugins;
+	qMessages = g_async_queue_ref((GAsyncQueue*)etData->tData->qMessages);
+	exitFlag = etData->tData->exitFlag;
 	tableLength = g_queue_get_length(routingTable);
 	
 	/* Now the dispatcher is fully functional. */
 	g_debug("Dispatcher up & running");
 
 	/* Keeps sending data */
-	while (dPlugins != NULL)
+	while ((dPlugins != NULL) && (!g_atomic_int_get(exitFlag)))
 	{
 		/* Gets a new message to dispatch.
 		 * Trying to pop a message is actually more efficient than
@@ -155,9 +160,10 @@ loadDispatcher					(gpointer data)
 		if ((msg = (Message*)g_async_queue_try_pop(qMessages)) != NULL)
 		{
 			i = 0;
-				
+			found = FALSE;
+
 			/* Search for a route in the route table. */
-			while (i < tableLength)
+			while ((i < tableLength) && (found == FALSE))
 			{
 				entry = g_queue_peek_nth(routingTable, i);
 				
@@ -165,20 +171,30 @@ loadDispatcher					(gpointer data)
 					g_pattern_match_string(entry->srcAddrPattern, msg->srcAddress))
 				{
 					plugin = g_datalist_get_data(dPlugins, entry->destProto);
-					i = tableLength;	
+					found = TRUE;
 				}
 				else
 				{
 					i++;
 				}
 			}
-
-			if (!plugin->pluginSend((gpointer)entry->destAddress, (gpointer)msg->qChunks, funcError))
+			
+			// TODO: better error handling
+			if (found == FALSE)
 			{
-				g_warning("%s: %s", CANNOTSENDDATA, *funcError);
+				g_critical("PLUGIN not found!");
 			}
 			
-			/* Free msg pointer. */
+			// TODO: Wait
+			while (g_async_queue_length(msg->qChunks) < 1)
+				g_usleep(WAITPERIOD);
+			
+			if (!plugin->pluginSend((gpointer)entry->destAddress, (gpointer)msg->qChunks, &funcError))
+			{
+				g_warning("%s: %s", CANNOTSENDDATA, funcError);
+				g_free((gpointer)funcError);
+			}
+			
 			g_free(msg);
 		}
 		else
@@ -186,10 +202,26 @@ loadDispatcher					(gpointer data)
 			g_usleep(WAITPERIOD);
 		}
 	}
-	
-	/* Free memory. */
+
+	/* Free memory. */	
 	g_async_queue_unref(qMessages);
 
-	g_debug("End dispatching process");
 	return (NULL);
+}
+
+/* Funcion closeDispatcher
+ * Precondiciones:
+ * Postcondiciones:
+ * Entrada:
+ * Salida:
+ * Proceso:
+ * */
+gboolean
+closeDispatcher					(gchar** error)
+{
+	g_debug("Closing dispatcher...");
+	g_queue_free(routingTable);
+	
+	/* TODO: free patterspec? */
+	return (TRUE);
 }
