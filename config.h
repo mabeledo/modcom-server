@@ -10,7 +10,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-/* Funcion initConfigFile
+/* Funcion initConfig
  * Precondiciones:
  * Postcondiciones:
  * Entrada:
@@ -18,9 +18,9 @@
  * Proceso:
  * */
 gboolean
-initConfigFile				(const gchar*, gchar**);
+initConfig					(const gchar*, gchar**);
 
-/* Funcion loadConfigFile
+/* Funcion loadConfig
  * Precondiciones:
  * Postcondiciones:
  * Entrada:
@@ -28,6 +28,16 @@ initConfigFile				(const gchar*, gchar**);
  * Proceso:
  * */
 gboolean
-loadConfigFile				(const gchar*, GData**, gchar**);
+loadConfig					(const gchar*, GData**, gchar**);
+
+/* Funcion endConfig
+ * Precondiciones:
+ * Postcondiciones:
+ * Entrada:
+ * Salida:
+ * Proceso:
+ * */
+gboolean
+endConfig					();
 
 #endif

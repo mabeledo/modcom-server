@@ -30,4 +30,14 @@ initDispatcher					(GData**, gchar**);
 gpointer
 loadDispatcher					(gpointer);
 
+/* Funcion closeDispatcher
+ * Precondiciones:
+ * Postcondiciones:
+ * Entrada:
+ * Salida:
+ * Proceso:
+ * */
+gboolean
+closeDispatcher					(gchar**);
+
 #endif

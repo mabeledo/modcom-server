@@ -25,11 +25,11 @@
 #define RECEIVEERROR		"Unable to initialize all receivers"
 
 /* Global variables. */
-static GData* dPlugins;
-static GAsyncQueue* qMessages;
 static GThread* dispatchThread;
+static gpointer dispRetData;
 static GThread* receiveThread;
-static ThreadData* tData;
+static gpointer recvRetData;
+static ExtThreadData* etData;
 
 /* Funcion initBaseSystem
  * Precondiciones:
@@ -41,9 +41,8 @@ static ThreadData* tData;
 gboolean
 initBaseSystem				(const gchar* configFile, gchar** error)
 {
-	/* Memory allocation is done here to avoid local issues or
-	 * automatic deallocation after function exit.
-	 * */
+	GData* dPlugins;
+	
 	GData* dConfig;
 	GData* baseConfig;
 	GData* pluginConfig;
@@ -52,7 +51,8 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 	GData* pluginSetConfig;
 
 	GError* threadError;
-	gchar* behaviour;
+	gchar *behaviour, *closeError;
+	gboolean exitFlag;
 	
 	#ifdef G_THREADS_ENABLED
 		if (!g_thread_supported())
@@ -68,8 +68,8 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 	 * GData structure, in order to handle configuration parameters
 	 * easily.
 	 * */
-	if (!(initConfigFile(configFile, error) &&
-	      loadConfigFile(configFile, &dConfig, error)))
+	if (!(initConfig(configFile, error) &&
+	      loadConfig(configFile, &dConfig, error)))
 	{
 		return (FALSE);
 	}
@@ -92,18 +92,24 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 	pluginSetConfig = dConfig;
 	
 	/* Inicializa la cola de plugins y de mensajes. */
-	qMessages = g_async_queue_new();
+	etData = g_new0(ExtThreadData, 1);
+	
 	g_datalist_init(&dPlugins);
-	tData = g_new0(ThreadData, 1);
-	tData->dPlugins = &dPlugins;
-	tData->qMessages = qMessages;
+	etData->dPlugins = &dPlugins;
+	
+	etData->tData = g_new0(ThreadData, 1);
+	
+	etData->tData->qMessages = g_async_queue_new();
+	etData->tData->mutex = g_mutex_new();
+	exitFlag = FALSE;
+	etData->tData->exitFlag = &exitFlag;
 	
 	/* Se inicializan las estructuras de plugins.
 	 *  - Explora el directorio de plugins y carga los ficheros.
 	 *  - Carga las funciones en las estructuras de plugin correspondientes.
 	 * */
 	if (!(initPlugins(&pluginConfig, error) && 
-		  loadAllPlugins(&dPlugins, &dConfig, error)))
+		  loadAllPlugins(etData->dPlugins, &dConfig, error)))
 	{
 		return (FALSE);
 	}
@@ -118,8 +124,11 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 		return (FALSE);
 	}
 	
+	g_datalist_clear(&baseConfig);
+	g_datalist_clear(&dConfig);
+	
 	if ((dispatchThread = g_thread_create((GThreadFunc)&loadDispatcher,
-										  (gpointer)tData, TRUE, &threadError)) == NULL)
+										  (gpointer)etData, TRUE, &threadError)) == NULL)
 	{
 		*error = (char*)g_strconcat(DISPATCHERROR, "\nReturned value: ",
 											(gchar*)dispatchThread,
@@ -130,7 +139,7 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 	}
 	
 	if ((receiveThread = g_thread_create((GThreadFunc)&loadAllReceivers,
-										  (gpointer)tData, TRUE, &threadError)) == NULL)
+										  (gpointer)etData, TRUE, &threadError)) == NULL)
 	{
 		*error = (char*)g_strconcat(RECEIVEERROR, "\nReturned value: ",
 											(gchar*)receiveThread,
@@ -140,34 +149,43 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 		return (FALSE);
 	}
 
-	/* Free memory. */
-	g_datalist_clear(&baseConfig);
-	g_datalist_clear(&dConfig);
-
 	/* Waits for both threads if the process was initialized by a server,
 	 * not a client.
 	 * Currently, returned values are ignored.
 	 * */
 	if (g_str_equal(behaviour, "server"))
 	{
-		g_thread_join(receiveThread);
-		g_thread_join(dispatchThread);
+		recvRetData = g_thread_join(receiveThread);
+		dispRetData = g_thread_join(dispatchThread);
 	}
-		
+	
+	/* Clean all and exit. */
+	if (!closeBaseSystem(error))
+	{
+		return (FALSE);
+	}
+	
 	return (TRUE);
 }
 
-/* Funcion closeComSystem
+/* Funcion closeBaseSystem
  * Precondiciones:
  * Postcondiciones:
  * Entrada: 
  * Salida: 
- * Proceso: 
- * NOT IMPLEMENTED
+ * Proceso:
  * */
 gboolean
 closeBaseSystem				(gchar** error)
-{
+{	
+	/* Set the thread exit flag to TRUE. */
+	g_atomic_int_set(etData->tData->exitFlag, TRUE);
+	g_usleep(5000000);
+	
+	g_debug("End dispatching process");
+	g_debug("End receiving process");
+	
+	/* Close all software modules in reverse order. */
 	return (TRUE);
 }
 

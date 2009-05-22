@@ -30,6 +30,16 @@ initReceivers					(GData**, gchar**);
 gpointer
 loadAllReceivers				(gpointer);
 
+/* Funcion closeReceivers
+ * Precondiciones:
+ * Postcondiciones:
+ * Entrada: 
+ * Salida: 
+ * Proceso: 
+ * */
+gboolean
+closeReceivers					(gchar**);
+
 #endif
 
 /*

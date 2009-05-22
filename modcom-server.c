@@ -147,12 +147,12 @@ main				(int argc, char *argv[])
 		
 		return (1);
 	}
-
+	
 	/* Catch termination signals. */
 	signal(SIGINT, endProcess);
 	signal(SIGTERM, endProcess);
 	signal(SIGKILL, endProcess);
-	
+
 	if (!initBaseSystem(optConfig, &returnError))
 	{
 		g_critical("%s", returnError);

@@ -16,7 +16,7 @@
 #define NOGROUPSAVAILABLE		"No hay grupos disponibles"
 #define NOGROUPSETAVAILABLE		"No hay grupos que contengan el patron: "
 
-/* Funcion initConfigFile
+/* Funcion initConfig
  * Precondiciones:
  * Postcondiciones:
  * Entrada:
@@ -24,7 +24,7 @@
  * Proceso:
  * */
 gboolean
-initConfigFile				(const gchar* filename, gchar** error)
+initConfig					(const gchar* filename, gchar** error)
 {
 	if (!g_file_test(filename, G_FILE_TEST_EXISTS))
 	{
@@ -35,7 +35,7 @@ initConfigFile				(const gchar* filename, gchar** error)
 	return (TRUE);
 }
 
-/* Funcion loadConfigFile
+/* Funcion loadConfig
  * Precondiciones:
  * Postcondiciones:
  * Entrada:
@@ -43,7 +43,7 @@ initConfigFile				(const gchar* filename, gchar** error)
  * Proceso:
  * */
 gboolean
-loadConfigFile				(const gchar* filename, GData** dConfig, gchar** error)
+loadConfig					(const gchar* filename, GData** dConfig, gchar** error)
 {
 	GKeyFile* kConfig;
 	GData* auxConfig;
@@ -89,6 +89,20 @@ loadConfigFile				(const gchar* filename, GData** dConfig, gchar** error)
 		
 		g_datalist_set_data(dConfig, groups[i], auxConfig);
 	}
+	
+	return (TRUE);
+}
+
+/* Funcion endConfig
+ * Precondiciones:
+ * Postcondiciones:
+ * Entrada:
+ * Salida:
+ * Proceso:
+ * */
+gboolean
+closeConfig					()
+{
 	
 	return (TRUE);
 }
