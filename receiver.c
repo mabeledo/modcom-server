@@ -1,7 +1,7 @@
 /********************************************************************
  *  Proyecto: Sistema modular de comunicacion con un robot movil
  *  Subproyecto: Servidor
- *  Archivo: receivemanager.c
+ *  Archivo: receiver.c
  * 	Version: 1.0
  *
  *  Autor: Manuel Angel Abeledo Garcia
@@ -53,10 +53,14 @@ loadReceiver					(GQuark key, gpointer data, gpointer user_data)
 	Plugin* plugin;
 	ForeachData* fData;
 	GThread* receiveThread;
-	GError* threadError = NULL;
+	GError* threadError;
 
+	/* Workaround */
+	threadError = NULL;
+	
 	plugin = (Plugin*)data;
 	fData = (ForeachData*)user_data;
+	
 
 	/* Creacion del hilo de recepcion, almacenamiento de la referencia en la cola */
 	receiveThread = g_thread_create(plugin->pluginReceive, (gpointer)fData->tData, TRUE, &threadError);
@@ -131,5 +135,7 @@ loadAllReceivers				(gpointer data)
 gboolean
 closeReceivers					(gchar** error)
 {
+	
+	
 	return (TRUE);
 }
