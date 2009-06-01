@@ -201,6 +201,7 @@ loadAllPlugins				(GData** dPlugins, GData** pluginSetConfig, gchar** error)
 	}
 
 	g_dir_close(pluginDir);
+	g_free(directory);
 	
 	return (TRUE);
 }

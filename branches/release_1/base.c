@@ -14,6 +14,7 @@
 #include "general.h"
 #include "thread.h"
 
+#include "base.h"
 #include "config.h"
 #include "loader.h"
 #include "receiver.h"
@@ -51,7 +52,7 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 	GData* pluginSetConfig;
 
 	GError* threadError;
-	gchar *behaviour, *closeError;
+	gchar *behaviour;
 	gboolean exitFlag;
 	
 	#ifdef G_THREADS_ENABLED
@@ -135,6 +136,7 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 											"\nError message: ",
 											(gchar*)threadError->message,
 											NULL);
+		g_error_free(threadError);
 		return (FALSE);
 	}
 	
@@ -146,13 +148,16 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 											"\nError message: ",
 											(gchar*)threadError->message,
 											NULL);
+		g_error_free(threadError);
 		return (FALSE);
 	}
 
 	/* Waits for both threads if the process was initialized by a server,
 	 * not a client.
-	 * Currently, returned values are ignored.
 	 * */
+	recvRetData = NULL;
+	dispRetData = NULL;
+	
 	if (g_str_equal(behaviour, "server"))
 	{
 		recvRetData = g_thread_join(receiveThread);
@@ -177,18 +182,42 @@ initBaseSystem				(const gchar* configFile, gchar** error)
  * */
 gboolean
 closeBaseSystem				(gchar** error)
-{	
+{
+	gchar* funcError;
+	
 	/* Set the thread exit flag to TRUE. */
 	g_atomic_int_set(etData->tData->exitFlag, TRUE);
-	g_usleep(5000000);
+	g_debug("Waiting for threads to exit");
+	g_usleep(500000);
 	
-	g_debug("End dispatching process");
-	g_debug("End receiving process");
-	
-	/* Close all software modules in reverse order. */
-	return (TRUE);
-}
+	*error = NULL;
 
-/*
- * VERSION 0.1
- * */
+	if (!closeDispatcher(&funcError))
+	{
+		g_debug("Dispatching process closed with errors");
+		*error = g_strconcat("Dispatch module: ", funcError, "\n", NULL);
+	}
+	else
+	{
+		g_debug("Dispatching process closed properly");
+	}
+	
+	if (!closeReceivers(&funcError))
+	{
+		g_debug("Receiving process closed with errors");
+		*error = g_strconcat("Receive module: ", funcError, "\n", NULL);
+	}
+	else
+	{
+		g_debug("Receiving process closed properly");
+	}
+	
+	if (*error == NULL)
+	{
+		return (TRUE);
+	}
+	else
+	{
+		return (FALSE);
+	}
+}

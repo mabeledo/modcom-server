@@ -18,7 +18,6 @@
 /* Error messages */
 #define CANNOTLOCATEROUTEFILE	"Imposible encontrar archivo de rutas"
 #define CANNOTOPENROUTINGFILE	"Imposible abrir el archivo de enrutado"
-#define CANNOTSENDDATA			"Imposible enviar datos con el complemento"
 #define CANNOTWRITEDATA			"Imposible grabar datos en el fichero"
 #define CANNOTLOADDISPATCHER	"Imposible enviar datos con el complemento"
 #define	CANNOTCLOSEDISPATCHER	"Cannot close dispatcher properly"
@@ -72,6 +71,7 @@ initDispatcher					(GData** dispatchConfig, gchar** error)
 		if (channelError != NULL)
 		{
 			*error = g_strconcat(CANNOTOPENROUTINGFILE, ": ", channelError->message, NULL);
+			g_clear_error(&channelError);
 		}
 		else
 		{
@@ -110,6 +110,7 @@ initDispatcher					(GData** dispatchConfig, gchar** error)
 	if (g_io_channel_shutdown(routing, FALSE, &channelError) == (G_IO_STATUS_ERROR | G_IO_STATUS_AGAIN))
 	{
 		*error = g_strconcat(CANNOTOPENROUTINGFILE, ": ", channelError->message, NULL);
+		g_error_free(channelError);
 		return (FALSE);
 	}
 	
@@ -191,7 +192,7 @@ loadDispatcher					(gpointer data)
 			
 			if (!plugin->pluginSend((gpointer)entry->destAddress, (gpointer)msg->qChunks, &funcError))
 			{
-				g_warning("%s: %s", CANNOTSENDDATA, funcError);
+				g_warning("%s", funcError);
 				g_free((gpointer)funcError);
 			}
 			
@@ -219,7 +220,6 @@ loadDispatcher					(gpointer data)
 gboolean
 closeDispatcher					(gchar** error)
 {
-	g_debug("Closing dispatcher...");
 	g_queue_free(routingTable);
 	
 	/* TODO: free patterspec? */
