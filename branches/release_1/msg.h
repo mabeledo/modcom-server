@@ -15,5 +15,6 @@ typedef struct _Message
 {
 	const gchar* srcProto;
 	const gchar* srcAddress;
-	GAsyncQueue* qChunks;
+	gchar* chunk;
+	gsize chunkLen;
 } Message;

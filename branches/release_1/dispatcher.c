@@ -13,7 +13,7 @@
 #include "plugin.h"
 
 #define ROUTINGFILE			"routes.dat"
-#define WAITPERIOD			1000
+#define WAITPERIOD			100
 
 /* Error messages */
 #define CANNOTLOCATEROUTEFILE	"Imposible encontrar archivo de rutas"
@@ -186,17 +186,11 @@ loadDispatcher					(gpointer data)
 				g_critical("PLUGIN not found!");
 			}
 			
-			// TODO: Wait
-			while (g_async_queue_length(msg->qChunks) < 1)
-				g_usleep(WAITPERIOD);
-			
-			if (!plugin->pluginSend((gpointer)entry->destAddress, (gpointer)msg->qChunks, &funcError))
+			if (!plugin->pluginSend((gpointer)entry->destAddress, (gpointer)msg, &funcError))
 			{
 				g_warning("%s", funcError);
 				g_free((gpointer)funcError);
 			}
-			
-			g_free(msg);
 		}
 		else
 		{
