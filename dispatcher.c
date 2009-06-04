@@ -21,6 +21,7 @@
 #define CANNOTWRITEDATA			"Imposible grabar datos en el fichero"
 #define CANNOTLOADDISPATCHER	"Imposible enviar datos con el complemento"
 #define	CANNOTCLOSEDISPATCHER	"Cannot close dispatcher properly"
+#define PLUGINNOTFOUND			"Plugin not found"
 
 /* Module type definitions. */
 typedef struct _RoutingEntry
@@ -183,7 +184,8 @@ loadDispatcher					(gpointer data)
 			// TODO: better error handling
 			if (found == FALSE)
 			{
-				g_critical("PLUGIN not found!");
+				g_atomic_int_set(exitFlag, TRUE);
+				return (PLUGINNOTFOUND);
 			}
 			
 			if (!plugin->pluginSend((gpointer)entry->destAddress, (gpointer)msg, &funcError))

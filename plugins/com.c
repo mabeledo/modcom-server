@@ -88,7 +88,7 @@ pluginInit							(gpointer data, gchar** error)
 	 * */
 	
 	#ifdef G_OS_UNIX
-		/* UNIX plugin implementation is a little bit special because it
+		/* UNIX plugin implementation is a little bit tricky because it
 		 * handles the serial port as a file and needs a bunch of
 		 * parameters. Serial port is opened first and then configured, and
 		 * it should stay opened until the process ends.
@@ -129,13 +129,12 @@ pluginInit							(gpointer data, gchar** error)
 			 * CLOCAL (local reception, no modem control), CREAD
 			 * (enable receiving characters).
 			 * */
-			newCfg[i].c_cflag = B38400 | CS8 | CLOCAL | CREAD;
+			newCfg[i].c_cflag = B115200 | CS8 | CLOCAL | CREAD;
 			
 			/* Set IGNPAR (ignore bits with parity errors) and ICRNL (map CR,
 			 * Windows end of line, to NL, UNIX end of line).
 			 * */
 			newCfg[i].c_iflag = IGNPAR | ICRNL;
-
 			newCfg[i].c_oflag = 0;
 			newCfg[i].c_lflag = ICANON;
 			
@@ -270,6 +269,9 @@ pluginReceive						(gpointer data)
 						return ((gpointer)error);
 					}
 					
+					/* Workaround. g_io_channel_set_encoding() fails many times. */
+					chanError = NULL;
+					
 					/* Set a NULL encoding to read raw data. */
 					if (g_io_channel_set_encoding(channel, NULL, &chanError) != G_IO_STATUS_NORMAL)
 					{
@@ -277,10 +279,11 @@ pluginReceive						(gpointer data)
 						g_warning("%s", error);
 						return ((gpointer)error);
 					}
-					
-					/* Reads data from channel and pushes each chunk into the chunk queue. */
-					if ((devStatus = g_io_channel_read_to_end(channel, &msg->chunk, &msg->chunkLen, &chanError)) == G_IO_STATUS_NORMAL)
+
+					/* Reads *lines* from channel and pushes each chunk into the chunk queue. */
+					if ((devStatus = g_io_channel_read_line(channel, &msg->chunk, &msg->chunkLen, NULL, &chanError)) == G_IO_STATUS_NORMAL)
 					{
+						g_warning("chunk: %s", msg->chunk);
 						g_async_queue_push(tData->qMessages, msg);
 					}
 					
@@ -289,26 +292,27 @@ pluginReceive						(gpointer data)
 						g_warning("%s - %s: %s", PLUGINNAME, READERROR, chanError->message);
 						g_clear_error(&chanError);
 					}
-					
-					/* Clean channel. */
-					if (g_io_channel_shutdown(channel, TRUE, &chanError) != G_IO_STATUS_NORMAL)
-					{
-						error = g_strconcat(PLUGINNAME, " - ", CHANSHUTDOWNERROR, ": ", chanError->message, NULL);
-						g_warning("%s", error);
-						return ((gpointer)error);
-					}
-					
-					g_io_channel_unref(channel);
 				}
 			}
-			
+
 			if (readyFd < 0)
 			{
-				error = g_strconcat(PLUGINNAME, " - ", NODEVICEAVAILABLE, ": ", chanError->message, NULL);
+				error = g_strconcat(PLUGINNAME, " - ", NODEVICEAVAILABLE, NULL);
 				g_warning("%s", error);
 				return ((gpointer)error);
 			}
+			
 		}
+		
+		/* Clean opened file descriptor.
+		if (g_io_channel_shutdown(channel, TRUE, &chanError) != G_IO_STATUS_NORMAL)
+		{
+			error = g_strconcat(PLUGINNAME, " - ", CHANSHUTDOWNERROR, ": ", chanError->message, NULL);
+			g_warning("%s", error);
+			return ((gpointer)error);
+		}
+
+		g_io_channel_unref(channel);*/
 	#endif
 
 	/* Clean and exit. */

@@ -160,8 +160,14 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 	
 	if (g_str_equal(behaviour, "server"))
 	{
-		recvRetData = g_thread_join(receiveThread);
-		dispRetData = g_thread_join(dispatchThread);
+		if (((dispRetData = g_thread_join(dispatchThread)) != NULL) ||
+			((recvRetData = g_thread_join(receiveThread)) != NULL))
+		{
+			*error = g_strconcat("Dispatcher: ", (gchar*)dispRetData, ", Receiver: ", 
+								recvRetData, NULL);
+			return (FALSE);
+		}
+		
 	}
 	
 	/* Clean all and exit. */
