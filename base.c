@@ -163,11 +163,11 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 		if (((dispRetData = g_thread_join(dispatchThread)) != NULL) ||
 			((recvRetData = g_thread_join(receiveThread)) != NULL))
 		{
-			*error = g_strconcat("Dispatcher: ", (gchar*)dispRetData, ", Receiver: ", 
-								recvRetData, NULL);
+			g_debug("Dispatcher or receiver thread exited with errors");
+			*error = g_strconcat("Dispatcher return message: ", (gchar*)dispRetData, "\n",
+								 "Receiver return message: ", (gchar*)recvRetData, "\n" ,NULL);
 			return (FALSE);
 		}
-		
 	}
 	
 	/* Clean all and exit. */
@@ -200,22 +200,22 @@ closeBaseSystem				(gchar** error)
 
 	if (!closeDispatcher(&funcError))
 	{
-		g_debug("Dispatching process closed with errors");
+		g_debug("Dispatch module closed with errors");
 		*error = g_strconcat("Dispatch module: ", funcError, "\n", NULL);
 	}
 	else
 	{
-		g_debug("Dispatching process closed properly");
+		g_debug("Dispatch module closed properly");
 	}
 	
 	if (!closeReceivers(&funcError))
 	{
-		g_debug("Receiving process closed with errors");
+		g_debug("Receive module closed with errors");
 		*error = g_strconcat("Receive module: ", funcError, "\n", NULL);
 	}
 	else
 	{
-		g_debug("Receiving process closed properly");
+		g_debug("Receive module closed properly");
 	}
 	
 	if (*error == NULL)

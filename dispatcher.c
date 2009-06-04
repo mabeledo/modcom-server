@@ -98,7 +98,7 @@ initDispatcher					(GData** dispatchConfig, gchar** error)
 				entry->srcProto = g_strdup(bufferSet[0]);
 				entry->srcAddrPattern = g_pattern_spec_new(bufferSet[1]);
 				entry->destProto = g_strdup(bufferSet[2]);
-				entry->destAddress = g_strdup(bufferSet[3]);
+				entry->destAddress = g_strchomp(bufferSet[3]);
 				
 				g_queue_push_tail(routingTable, entry);
 			}
@@ -168,7 +168,7 @@ loadDispatcher					(gpointer data)
 			while ((i < tableLength) && (found == FALSE))
 			{
 				entry = g_queue_peek_nth(routingTable, i);
-				
+
 				if (g_str_equal(entry->srcProto, msg->srcProto) &&
 					g_pattern_match_string(entry->srcAddrPattern, msg->srcAddress))
 				{

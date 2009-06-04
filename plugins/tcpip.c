@@ -63,6 +63,7 @@
 #define CHANOPTERROR		"Error setting up channel"
 #define CHANSHUTDOWNERROR	"Error closing channel"
 #define FDSHUTDOWNERROR		"Error closing descriptor"
+#define FLUSHERROR			"Error flushing data"
 
 
 /* Global variables.
@@ -169,6 +170,13 @@ pluginSend							(gpointer dest, gpointer data, gchar** error)
 		if (g_io_channel_write_chars(channel, msg->chunk, msg->chunkLen, NULL, &chanError) != G_IO_STATUS_NORMAL)
 		{
 			*error = g_strconcat(PLUGINNAME, " - ", SENDERROR, ": ", chanError->message, NULL);
+			return (FALSE);
+		}
+
+		/* Flushes channel. */
+		if (g_io_channel_flush(channel, &chanError) != G_IO_STATUS_NORMAL)
+		{
+			*error = g_strconcat(PLUGINNAME, " - ", FLUSHERROR, ": ", chanError->message, NULL);
 			return (FALSE);
 		}
 

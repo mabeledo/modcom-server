@@ -43,6 +43,7 @@
 #define CHANOPENERROR		"Error opening channel"
 #define READERROR			"Error reading data from channel"
 #define SENDERROR			"Error sending data over the channel"
+#define FLUSHERROR			"Error flushing data"
 
 /* Global variables. */
 #ifdef G_OS_UNIX
@@ -108,7 +109,7 @@ pluginInit							(gpointer data, gchar** error)
 			/* Open serial port only for reading and not as controlling
 			 * tty, in order to avoid get killed with CTRL+C.
 			 * */
-			if ((fd[i] = open(devices[i], O_RDWR | O_NOCTTY)) < 0)
+			if ((fd[i] = open(devices[i], O_RDWR | O_NOCTTY | O_NDELAY)) < 0)
 			{
 				*error = g_strconcat(PLUGINNAME, " - ", OPENDEVICEFAILED, NULL);
 				return (FALSE);
@@ -186,14 +187,16 @@ pluginSend							(gpointer dest, gpointer data, gchar** error)
 	
 	#ifdef G_OS_UNIX
 		/* Seeks for the device ready to send data. */
-		for (i = 0; !g_str_equal((gchar*)dest, devices[i]); i++);
-	
+		for (i = 0; !g_str_equal(destAddress, devices[i]) && (i < fdLength); i++);
+		
 		/* Create a new io channel to read data. */
 		if ((channel = g_io_channel_unix_new(fd[i])) == NULL)
 		{
 			*error = g_strconcat(PLUGINNAME, " - ", CHANOPENERROR, NULL);
 			return (FALSE);
 		}
+		
+		chanError = NULL;
 		
 		/* Set a NULL encoding to read raw data. */
 		if (g_io_channel_set_encoding(channel, NULL, &chanError) != G_IO_STATUS_NORMAL)
@@ -209,14 +212,21 @@ pluginSend							(gpointer dest, gpointer data, gchar** error)
 			return (FALSE);
 		}
 		
-		/* Closes channel and frees chunk pointer. */
+		/* Flushes channel. */
+		if (g_io_channel_flush(channel, &chanError) != G_IO_STATUS_NORMAL)
+		{
+			*error = g_strconcat(PLUGINNAME, " - ", FLUSHERROR, ": ", chanError->message, NULL);
+			return (FALSE);
+		}
+		
+		/* Closes channel. 
 		if (g_io_channel_shutdown(channel, TRUE, &chanError) != G_IO_STATUS_NORMAL)
 		{
 			*error = g_strconcat(PLUGINNAME, " - ", CHANSHUTDOWNERROR, ": ", chanError->message, NULL);
 			return (FALSE);
 		}
 		
-		g_io_channel_unref(channel);
+		g_io_channel_unref(channel);*/
 	#endif
 	
 	return (TRUE);
@@ -310,9 +320,9 @@ pluginReceive						(gpointer data)
 			error = g_strconcat(PLUGINNAME, " - ", CHANSHUTDOWNERROR, ": ", chanError->message, NULL);
 			g_warning("%s", error);
 			return ((gpointer)error);
-		}
+		} */
 
-		g_io_channel_unref(channel);*/
+		/*g_io_channel_unref(channel);*/
 	#endif
 
 	/* Clean and exit. */
