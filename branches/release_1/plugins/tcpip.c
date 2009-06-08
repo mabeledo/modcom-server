@@ -15,8 +15,6 @@
 
 #include "common.h"
 #include "tcpip.h"
-#include "../msg.h"
-#include "../thread.h"
 
 /* Winsocket support */
 #ifdef G_OS_WIN32

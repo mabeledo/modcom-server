@@ -25,9 +25,6 @@ pluginDesc							();
 const gchar*
 pluginVersion						();
 
-GAsyncQueue*
-pluginQueue							();
-
 gboolean
 pluginInit							(gpointer, gchar**);
 
@@ -39,7 +36,3 @@ pluginReceive						(gpointer);
 
 gboolean
 pluginExit							(gchar**);
-
-/*
- * VERSION 0.1
- * */

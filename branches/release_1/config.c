@@ -93,7 +93,7 @@ loadConfig					(const gchar* filename, GData** dConfig, gchar** error)
 	return (TRUE);
 }
 
-/* Funcion endConfig
+/* Funcion closeConfig
  * Precondiciones:
  * Postcondiciones:
  * Entrada:
