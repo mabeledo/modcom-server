@@ -119,8 +119,8 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 	 * Receiveer creates execution threads needed for asynchronous
 	 * message reception.
 	 * */
-	if (!(initReceivers(&receiveConfig, error) &&
-		  initDispatcher(&dispatchConfig, error)))
+	if (!(initDispatcher(&dispatchConfig, error) &&
+		initReceivers(&receiveConfig, error)))
 	{
 		return (FALSE);
 	}

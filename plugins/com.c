@@ -15,8 +15,6 @@
 
 #include "common.h"
 #include "com.h"
-#include "../msg.h"
-#include "../thread.h"
 
 #ifdef G_OS_WIN32
 

@@ -8,6 +8,8 @@
  ********************************************************************/
 
 #include <glib.h>
+#include "../msg.h"
+#include "../thread.h"
 
 static gchar* address;
 
