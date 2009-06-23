@@ -11,6 +11,8 @@
 #include "thread.h"
 #include "plugin.h"
 
+#define MODULENAME				"Receiver"
+
 /* Error messages */
 #define NOTENOUGHTHREADS		"No se ha creado ningun thread"
 #define CANNOTCREATETHREAD		"No se ha podido crear el thread"
@@ -54,22 +56,20 @@ loadReceiver					(GQuark key, gpointer data, gpointer user_data)
 	ForeachData* fData;
 	GThread* receiveThread;
 	GError* threadError;
-
-	/* Workaround */
-	threadError = NULL;
 	
 	plugin = (Plugin*)data;
 	fData = (ForeachData*)user_data;
-	
+	threadError = NULL;
 
 	/* Creacion del hilo de recepcion, almacenamiento de la referencia en la cola */
 	receiveThread = g_thread_create(plugin->pluginReceive, (gpointer)fData->tData, TRUE, &threadError);
 
 	if (threadError != NULL)
 	{
-		g_warning("%s. Plugin: %s. Error: %s.", CANNOTCREATETHREAD,
-												plugin->pluginName(),
-												threadError->message);
+		g_warning("%s - %s. Plugin: %s. Error: %s.", MODULENAME, 
+													CANNOTCREATETHREAD,
+													plugin->pluginName(),
+													threadError->message);
 		g_error_free(threadError);
 		g_free(receiveThread);
 	}
@@ -107,7 +107,7 @@ loadAllReceivers				(gpointer data)
 	/* Crea los hilos para las funciones de envío */
 	g_datalist_foreach(dPlugins, loadReceiver, (gpointer)fData);
 		
-	g_debug("Receiver up & running");
+	g_debug("%s - Up & running", MODULENAME);
 	
 	/* Waits for every thread previously created */
 	if (fData->counter > 0)
@@ -119,7 +119,7 @@ loadAllReceivers				(gpointer data)
 	}
 	else
 	{
-		g_critical("%s", NOTENOUGHTHREADS);
+		g_critical("%s - %s", MODULENAME, NOTENOUGHTHREADS);
 	}
 
 	return (NULL);
@@ -135,7 +135,6 @@ loadAllReceivers				(gpointer data)
 gboolean
 closeReceivers					(gchar** error)
 {
-	
-	
+
 	return (TRUE);
 }

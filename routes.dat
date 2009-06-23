@@ -1,4 +1,4 @@
 # Routing table file.
 # Format: [Message protocol] [Message source pattern] [Real destination protocol] [Real destination address]
 
-TCPIP 127.* COM /dev/ttyS0
+TCPIP 127.* COM /dev/ttyS0,/dev/ttyS1

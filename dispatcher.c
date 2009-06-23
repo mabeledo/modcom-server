@@ -12,8 +12,10 @@
 #include "msg.h"
 #include "plugin.h"
 
-#define ROUTINGFILE			"routes.dat"
-#define WAITPERIOD			100
+#define ROUTINGFILE				"routes.dat"
+#define WAITPERIOD				100
+#define MODULENAME				"Dispatcher"
+
 
 /* Error messages */
 #define CANNOTLOCATEROUTEFILE	"Imposible encontrar archivo de rutas"
@@ -22,6 +24,7 @@
 #define CANNOTLOADDISPATCHER	"Imposible enviar datos con el complemento"
 #define	CANNOTCLOSEDISPATCHER	"Cannot close dispatcher properly"
 #define PLUGINNOTFOUND			"Plugin not found"
+#define BADENTRYFORMAT			"Bad configuration entry format"
 
 /* Module type definitions. */
 typedef struct _RoutingEntry
@@ -34,7 +37,8 @@ typedef struct _RoutingEntry
 } RoutingEntry;
 
 /* Global variables. */
-static GQueue* routingTable;
+static RoutingEntry** routingTable;
+static gint routingTableLength;
 
 /* Funcion initDispatcher
  * Precondiciones:
@@ -46,10 +50,11 @@ static GQueue* routingTable;
 gboolean
 initDispatcher					(GData** dispatchConfig, gchar** error)
 {
-	gchar *routingFile, *buffer, **bufferSet;
+	gchar *routingFile, *buffer, **bufferEntry, **bufferDest;
 	GIOChannel* routing;
 	RoutingEntry* entry;
 	GError* channelError;
+	gint i, bufferLen;
 
 	channelError = NULL;
 	
@@ -62,7 +67,7 @@ initDispatcher					(GData** dispatchConfig, gchar** error)
 	
 	if (!g_file_test(routingFile, G_FILE_TEST_EXISTS))
 	{
-		*error = g_strdup(CANNOTLOCATEROUTEFILE);
+		*error = g_strconcat(MODULENAME, " - ", CANNOTLOCATEROUTEFILE, NULL);
 		return (FALSE);
 	}
 	
@@ -71,49 +76,64 @@ initDispatcher					(GData** dispatchConfig, gchar** error)
 	{
 		if (channelError != NULL)
 		{
-			*error = g_strconcat(CANNOTOPENROUTINGFILE, ": ", channelError->message, NULL);
+			*error = g_strconcat(MODULENAME, " - ", CANNOTOPENROUTINGFILE, ": ", channelError->message, NULL);
 			g_clear_error(&channelError);
 		}
 		else
 		{
-			*error = g_strconcat(CANNOTOPENROUTINGFILE, ": ", NOERRORAVAILABLE, NULL);
+			*error = g_strconcat(MODULENAME, " - ", CANNOTOPENROUTINGFILE, ": ", NOERRORAVAILABLE, NULL);
 		}
 		
 		return (FALSE);
 	}
-	
-	/* Initialize routing table (queue). */
-	routingTable = g_queue_new();
+
+	routingTableLength = 0;
+	routingTable = g_malloc(sizeof(RoutingEntry**));
 
 	while (g_io_channel_read_line(routing, &buffer, NULL, NULL, &channelError) == G_IO_STATUS_NORMAL)
 	{
 		/* Ignore commented (# prefixed) and empty lines. */
-		if (!g_str_has_prefix(buffer, "#"))
+		if (!(g_str_has_prefix(buffer, "#") || g_str_equal(buffer, "\n")))
 		{
-			bufferSet = g_strsplit(buffer, " ", 4);
-			if (g_strv_length(bufferSet) == (guint)4)
+			bufferEntry = g_strsplit(buffer, " ", 4);
+			if (g_strv_length(bufferEntry) == (guint)4)
 			{
-				entry = g_slice_new0(RoutingEntry);
+				/* Each destination address has its own entry in the routing table. */
+				bufferDest = g_strsplit(bufferEntry[3], ",", 0);
+				bufferLen = g_strv_length(bufferDest);
 				
-				entry->srcProto = g_strdup(bufferSet[0]);
-				entry->srcAddrPattern = g_pattern_spec_new(bufferSet[1]);
-				entry->destProto = g_strdup(bufferSet[2]);
-				entry->destAddress = g_strchomp(bufferSet[3]);
+				for (i = 0; i < bufferLen; i++)
+				{
+					entry = g_slice_new0(RoutingEntry);
+					
+					entry->srcProto = g_strdup(bufferEntry[0]);
+					entry->srcAddrPattern = g_pattern_spec_new(bufferEntry[1]);
+					entry->destProto = g_strdup(bufferEntry[2]);				
+					entry->destAddress = g_strdup(bufferDest[i]);
+
+					routingTable[routingTableLength] = entry;
+					routingTableLength++;
+				}					
 				
-				g_queue_push_tail(routingTable, entry);
+				g_strfreev(bufferEntry);
+				g_strfreev(bufferDest);
+			}
+			else
+			{
+				g_warning("%s - %s", MODULENAME, BADENTRYFORMAT);
 			}
 		}
 	}
-	
-	/* TODO: warning message for previous error. */
 
 	/* Close routing IO channel. */
 	if (g_io_channel_shutdown(routing, FALSE, &channelError) == (G_IO_STATUS_ERROR | G_IO_STATUS_AGAIN))
 	{
-		*error = g_strconcat(CANNOTOPENROUTINGFILE, ": ", channelError->message, NULL);
+		*error = g_strconcat(MODULENAME, " - ", CANNOTOPENROUTINGFILE, ": ", channelError->message, NULL);
 		g_error_free(channelError);
 		return (FALSE);
 	}
+	
+	/* TODO: manage error for empty routing table */
 	
 	/* Free memory and exit. */
 	g_datalist_clear(dispatchConfig);
@@ -137,20 +157,18 @@ loadDispatcher					(gpointer data)
 	
 	Message* msg;
 	Plugin* plugin;
-	RoutingEntry* entry;
 	
-	gint tableLength, i;
-	gchar *funcError;
+	gint i;
 	gboolean found;
+	gchar *funcError;
 	
 	etData = data;
 	dPlugins = etData->dPlugins;
 	qMessages = g_async_queue_ref((GAsyncQueue*)etData->tData->qMessages);
 	exitFlag = etData->tData->exitFlag;
-	tableLength = g_queue_get_length(routingTable);
 	
 	/* Now the dispatcher is fully functional. */
-	g_debug("Dispatcher up & running");
+	g_debug("%s - Up & running", MODULENAME);
 
 	/* Keeps sending data */
 	while ((dPlugins != NULL) && (!g_atomic_int_get(exitFlag)))
@@ -161,38 +179,29 @@ loadDispatcher					(gpointer data)
 		 * */
 		if ((msg = (Message*)g_async_queue_try_pop(qMessages)) != NULL)
 		{
-			i = 0;
-			found = FALSE;
-
-			/* Search for a route in the route table. */
-			while ((i < tableLength) && (found == FALSE))
+			/* Search for any route in the route table. */
+			for (i = 0; i < routingTableLength; i++)
 			{
-				entry = g_queue_peek_nth(routingTable, i);
-
-				if (g_str_equal(entry->srcProto, msg->srcProto) &&
-					g_pattern_match_string(entry->srcAddrPattern, msg->srcAddress))
+				if (g_str_equal(routingTable[i]->srcProto, msg->srcProto) &&
+					g_pattern_match_string(routingTable[i]->srcAddrPattern, msg->srcAddress))
 				{
-					plugin = g_datalist_get_data(dPlugins, entry->destProto);
 					found = TRUE;
-				}
-				else
-				{
-					i++;
+					plugin = g_datalist_get_data(dPlugins, routingTable[i]->destProto);
+					
+					if (!plugin->pluginSend((gpointer)routingTable[i]->destAddress, (gpointer)msg, &funcError))
+					{
+						g_warning("%s", funcError);
+						g_free((gpointer)funcError);
+					}					
 				}
 			}
-			
+
 			// TODO: better error handling
 			if (found == FALSE)
 			{
-				g_atomic_int_set(exitFlag, TRUE);
-				return (PLUGINNOTFOUND);
-			}
-			
-			if (!plugin->pluginSend((gpointer)entry->destAddress, (gpointer)msg, &funcError))
-			{
-				g_warning("%s", funcError);
-				g_free((gpointer)funcError);
-			}
+				//g_atomic_int_set(exitFlag, TRUE);
+				g_warning("%s - %s", MODULENAME, PLUGINNOTFOUND);
+			}			
 		}
 		else
 		{
@@ -216,7 +225,7 @@ loadDispatcher					(gpointer data)
 gboolean
 closeDispatcher					(gchar** error)
 {
-	g_queue_free(routingTable);
+	g_free(routingTable);
 	
 	/* TODO: free patterspec? */
 	return (TRUE);
