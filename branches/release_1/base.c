@@ -20,6 +20,8 @@
 #include "receiver.h"
 #include "dispatcher.h"
 
+#define MODULENAME			"Base"
+
 /* Error messages */
 #define THREADSNOTSUPPORTED	"Threads not supported"
 #define DISPATCHERROR		"Unable to initialize the dispatcher"
@@ -61,7 +63,7 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 			g_thread_init(NULL);
 		}
 	#else
-		*error = g_strdup(THREADSNOTSUPPORTED);
+		*error = g_strconcat(MODULENAME, " - ", THREADSNOTSUPPORTED, NULL);
 		return (FALSE);
 	#endif
 

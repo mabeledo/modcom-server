@@ -19,6 +19,7 @@
 #endif
 
 #define PLUGINDIR				"./plugins"
+#define MODULENAME				"Loader"
 
 /* Error messages */
 #define LOADPLUGINERROR			"El complemento no ha sido cargado"
@@ -55,14 +56,14 @@ initPlugins					(GData** pluginConfig, gchar** error)
 	/* Checks for plugin directory. */
 	if (!g_file_test(directory, (G_FILE_TEST_EXISTS | G_FILE_TEST_IS_DIR)))
 	{
-		*error = g_strdup(CANNOTLOCATEDIR);
+		*error = g_strconcat(MODULENAME, " - ", CANNOTLOCATEDIR, NULL);
 		return (FALSE);
 	}
 	
 	/* Checks for dynamically loaded modules support. */
 	if (!g_module_supported())
 	{
-		*error = g_strdup(CANNOTLOADMODULES);
+		*error = g_strconcat(MODULENAME, " - ", CANNOTLOADMODULES, NULL);
 		return (FALSE);
 	}
 
@@ -164,7 +165,7 @@ loadAllPlugins				(GData** dPlugins, GData** pluginSetConfig, gchar** error)
 	 * */
 	if ((pluginDir = g_dir_open(directory, 0, NULL)) == NULL)
 	{
-		*error = g_strdup(CANNOTOPENDIRECTORY);
+		*error = g_strconcat(MODULENAME, " - ", CANNOTOPENDIRECTORY, NULL);
 		return (FALSE);
 	}
 	
@@ -184,7 +185,7 @@ loadAllPlugins				(GData** dPlugins, GData** pluginSetConfig, gchar** error)
 			
 			if ((plugin = loadPlugin(dirEntry, pluginConfig, error)) == NULL)
 			{
-				g_warning("%s", g_strconcat(LOADPLUGINERROR, ": ", *error, NULL));
+				g_warning("%s", g_strconcat(MODULENAME, " - ", LOADPLUGINERROR, ": ", *error, NULL));
 			}
 			else
 			{
@@ -196,7 +197,7 @@ loadAllPlugins				(GData** dPlugins, GData** pluginSetConfig, gchar** error)
 	
 	if (counter <= 0)
 	{
-		*error = g_strdup(NOPLUGINFILESAVAILABLE);
+		*error = g_strconcat(MODULENAME, " - ", NOPLUGINFILESAVAILABLE, NULL);
 		return (FALSE);
 	}
 

@@ -151,7 +151,7 @@ pluginSend							(gpointer dest, gpointer data, gchar** error)
 		/* Connects to server. */
 		if (connect(clientSd, (struct sockaddr*)&addr, addrLen) != 0)
 		{
-			*error = g_strconcat(PLUGINNAME, " - ", CONNECTERROR, ": ", strerror(errno), NULL);
+			*error = g_strconcat(PLUGINNAME, " - ", CONNECTERROR, ": ", g_strerror(errno), NULL);
 			return (FALSE);
 		}
 		
@@ -218,7 +218,7 @@ pluginReceive						(gpointer data)
 		
 		if ((serverSd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		{
-			error = g_strconcat(PLUGINNAME, " - ", SOCKETERROR, ": ", strerror(errno), NULL);
+			error = g_strconcat(PLUGINNAME, " - ", SOCKETERROR, ": ", g_strerror(errno), NULL);
 			g_warning("%s", error);
 			return ((gpointer)error);
 		}
@@ -231,7 +231,7 @@ pluginReceive						(gpointer data)
 		/* Binds socket to address */
 		if (bind(serverSd, (struct sockaddr *)&addr, addrLen) != 0)
 		{
-			error = g_strconcat(PLUGINNAME, " - ", BINDERROR, ": ", strerror(errno), NULL);
+			error = g_strconcat(PLUGINNAME, " - ", BINDERROR, ": ", g_strerror(errno), NULL);
 			g_warning("%s", error);
 			return ((gpointer)error);
 		}
@@ -239,7 +239,7 @@ pluginReceive						(gpointer data)
 		/* Sets a waiting socket with 10 wait slots */
 		if (listen(serverSd, 10) != 0)
 		{
-			error = g_strconcat(PLUGINNAME, " - ", LISTENERROR, ": ", strerror(errno), NULL);
+			error = g_strconcat(PLUGINNAME, " - ", LISTENERROR, ": ", g_strerror(errno), NULL);
 			g_warning("%s", error);
 			return ((gpointer)error);
 		}
@@ -309,7 +309,7 @@ pluginReceive						(gpointer data)
 		
 		if (shutdown(serverSd, SHUT_RDWR) != 0)
 		{
-			error = g_strconcat(PLUGINNAME, " - ", FDSHUTDOWNERROR, ": ", strerror(errno), NULL);
+			error = g_strconcat(PLUGINNAME, " - ", FDSHUTDOWNERROR, ": ", g_strerror(errno), NULL);
 			g_warning("%s", error);
 			return ((gpointer)error);
 		}

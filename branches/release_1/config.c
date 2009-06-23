@@ -9,6 +9,8 @@
 
 #include "general.h"
 
+#define MODULENAME				"Config"
+
 /* Error messages */
 #define CANNOTINITIALIZEPARSER	"No se puede inicializar el analizador de configuracion"
 #define CANNOTLOCATECONFIGFILE	"El archivo de configuracion no existe"
@@ -28,7 +30,7 @@ initConfig					(const gchar* filename, gchar** error)
 {
 	if (!g_file_test(filename, G_FILE_TEST_EXISTS))
 	{
-		*error = g_strdup(CANNOTLOCATECONFIGFILE);
+		*error = g_strconcat(MODULENAME, " - ", CANNOTLOCATECONFIGFILE, NULL);
 		return (FALSE);
 	}
 
@@ -57,7 +59,7 @@ loadConfig					(const gchar* filename, GData** dConfig, gchar** error)
 	
 	if (!g_key_file_load_from_file(kConfig, filename, G_KEY_FILE_NONE, NULL))
 	{
-		*error = g_strdup(CANNOTINITIALIZEPARSER);
+		*error = g_strconcat(MODULENAME, " - ", CANNOTINITIALIZEPARSER, NULL);
 		return (FALSE);
 	}
 
@@ -66,7 +68,7 @@ loadConfig					(const gchar* filename, GData** dConfig, gchar** error)
 	
 	if (!(length > 0))
 	{
-		*error = g_strdup(NOGROUPSAVAILABLE);
+		*error = g_strconcat(MODULENAME, " - ", NOGROUPSAVAILABLE, NULL);
 		return (FALSE);
 	}
 
