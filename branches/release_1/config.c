@@ -92,6 +92,7 @@ loadConfig					(const gchar* filename, GData** dConfig, gchar** error)
 		g_datalist_set_data(dConfig, groups[i], auxConfig);
 	}
 	
+	g_debug("%s - Configuration loaded", MODULENAME);
 	return (TRUE);
 }
 
