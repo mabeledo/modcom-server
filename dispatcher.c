@@ -171,7 +171,7 @@ loadDispatcher					(gpointer data)
 	g_debug("%s - Up & running", MODULENAME);
 
 	/* Keeps sending data */
-	while ((dPlugins != NULL) && (!g_atomic_int_get(exitFlag)))
+	while (!g_atomic_int_get(exitFlag))
 	{
 		/* Gets a new message to dispatch.
 		 * Trying to pop a message is actually more efficient than
@@ -209,7 +209,8 @@ loadDispatcher					(gpointer data)
 		}
 	}
 
-	/* Free memory. */	
+	/* Free memory. */
+	g_free(msg);
 	g_async_queue_unref(qMessages);
 
 	return (NULL);
