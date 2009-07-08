@@ -37,7 +37,7 @@ endProcess			(gint sig)
 	{
 		g_print("\nParent process terminated with signal %d.\nNo errors.\n", sig);
 	}
-	
+
 	exit(sig);
 }
 
@@ -62,8 +62,11 @@ main				(int argc, char *argv[])
 
 	GError* error = NULL;
 	gchar* returnError = "";
-	gchar* optConfig = g_strconcat(g_get_current_dir(), "/", MODCOM_CFG, NULL);
+	gchar* defaultConfig = g_strconcat(g_get_current_dir(), "/", MODCOM_CFG, NULL);
+	gchar* optConfig;
 	gint i = 0;
+	
+	optConfig = g_strdup(defaultConfig);
 
 	GOptionEntry options[] = 
 	{
@@ -103,7 +106,7 @@ main				(int argc, char *argv[])
 		return(0);
 	}
 
-	if (!g_str_equal(optConfig, MODCOM_CFG))
+	if (!g_str_equal(optConfig, defaultConfig))
 	{
 		g_debug("Nuevo archivo de configuracion: %s", optConfig);
 	}

@@ -13,7 +13,7 @@
 #include "plugin.h"
 
 #define ROUTINGFILE				"routes.dat"
-#define WAITPERIOD				100
+#define WAITPERIOD				1000
 #define MODULENAME				"Dispatcher"
 
 
@@ -195,7 +195,12 @@ loadDispatcher					(gpointer data)
 					}					
 				}
 			}
-
+			
+			g_free((gpointer)msg->srcProto);
+			g_free((gpointer)msg->srcAddress);
+			g_free(msg->chunk);
+			g_free(msg);
+			
 			// TODO: better error handling
 			if (found == FALSE)
 			{
@@ -210,7 +215,7 @@ loadDispatcher					(gpointer data)
 	}
 
 	/* Free memory. */
-	g_free(msg);
+	
 	g_async_queue_unref(qMessages);
 
 	return (NULL);

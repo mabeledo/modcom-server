@@ -266,7 +266,7 @@ pluginReceive						(gpointer data)
 			 * sockaddr_in, and the IP in network byte order from that struct into
 			 * human readable notation.
 			 * */
-			msg->srcAddress = inet_ntoa(addr.sin_addr);
+			msg->srcAddress = g_strdup(inet_ntoa(addr.sin_addr));
 			msg->chunkLen = 0;
 			
 			if ((channel = g_io_channel_unix_new(clientSd)) == NULL)
