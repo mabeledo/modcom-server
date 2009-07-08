@@ -18,8 +18,8 @@
 
 
 /* Error messages */
-#define CANNOTLOCATEROUTEFILE	"Imposible encontrar archivo de rutas"
-#define CANNOTOPENROUTINGFILE	"Imposible abrir el archivo de enrutado"
+#define CANNOTLOCATEROUTEFILE	"Cannot locate routes file"
+#define CANNOTOPENROUTINGFILE	"Cannot open routes file"
 #define CANNOTWRITEDATA			"Imposible grabar datos en el fichero"
 #define CANNOTLOADDISPATCHER	"Imposible enviar datos con el complemento"
 #define	CANNOTCLOSEDISPATCHER	"Cannot close dispatcher properly"

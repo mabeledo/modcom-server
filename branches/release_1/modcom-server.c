@@ -62,7 +62,7 @@ main				(int argc, char *argv[])
 
 	GError* error = NULL;
 	gchar* returnError = "";
-	gchar* optConfig = MODCOM_CFG;
+	gchar* optConfig = g_strconcat(g_get_current_dir(), "/", MODCOM_CFG, NULL);
 	gint i = 0;
 
 	GOptionEntry options[] = 
