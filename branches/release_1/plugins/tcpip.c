@@ -45,9 +45,11 @@
 	#define INTERFACE		"eth0"
 #endif
 
+#define PORT				31337
+
 /* Error messages. */
 #define NODEVICEAVAILABLE	"There is no device available"
-#define NOPORTSPECIFIED		"No port in configuration file"
+#define PORTNOTVALID		"Port number not valid, falling back to default: "
 #define BINDERROR			"bind() error"
 #define LISTENERROR			"listen() error"
 #define ACCEPTERROR			"accept() error"
@@ -67,8 +69,11 @@
 /* Global variables.
  * These might be defined in the configuration file.
  * */
-static gint listenPort;
-static gchar* interface;
+static gint listenPort = PORT;
+
+#ifdef G_OS_UNIX
+	static gchar* interface = INTERFACE;
+#endif
 
 gboolean
 pluginInit							(gpointer data, gchar** error)
@@ -81,23 +86,19 @@ pluginInit							(gpointer data, gchar** error)
 		{
 			interface = (gchar*)g_datalist_get_data(&tcpipConfig, "interface");
 		}
-		else
-		{
-			*error = g_strconcat(PLUGINNAME, " - ", NODEVICEAVAILABLE, NULL);
-			return (FALSE);
-		}
 	#endif
 	
 	if (g_datalist_get_data(&tcpipConfig, "port") != NULL)
 	{
 		listenPort = (gint)g_strtod((gchar*)g_datalist_get_data(&tcpipConfig, "port"), NULL);
+		
+		if ((listenPort < 1) || (listenPort < 65536))
+		{
+			listenPort = PORT;
+			g_warning("%s %d", PORTNOTVALID, PORT);
+		}
 	}
-	else
-	{
-		*error = g_strconcat(PLUGINNAME, " - ", NOPORTSPECIFIED, NULL);
-		return (FALSE);
-	}
-	
+
 	/* Free memory. */
 	g_datalist_clear(&tcpipConfig);
 	

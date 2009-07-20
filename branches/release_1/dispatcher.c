@@ -90,6 +90,7 @@ initDispatcher					(GData** dispatchConfig, gchar** error)
 	routingTableLength = 0;
 	routingTable = g_malloc(sizeof(RoutingEntry**));
 
+	/* Read the routing file and create a routing table. */
 	while (g_io_channel_read_line(routing, &buffer, NULL, NULL, &channelError) == G_IO_STATUS_NORMAL)
 	{
 		/* Ignore commented (# prefixed) and empty lines. */
