@@ -206,3 +206,34 @@ loadAllPlugins				(GData** dPlugins, GData** pluginSetConfig, gchar** error)
 	
 	return (TRUE);
 }
+
+/* Funcion closePlugin
+ * Precondiciones:
+ * Postcondiciones:
+ * Entrada:
+ * Salida:
+ * Proceso:
+ * */
+static void
+closePlugin					(GQuark key, gpointer data, gpointer user_data)
+{
+	Plugin* plugin = (Plugin*)data;
+	g_slice_free(Plugin, plugin);
+}
+
+
+/* Funcion closeAllPlugins
+ * Precondiciones:
+ * Postcondiciones:
+ * Entrada:
+ * Salida:
+ * Proceso:
+ * */
+gboolean
+closeAllPlugins				(GData** dPlugins, gchar** error)
+{
+	g_datalist_foreach(dPlugins, closePlugin, NULL);
+	g_datalist_clear(dPlugins);
+	
+	return (TRUE);
+}
