@@ -30,4 +30,14 @@ initPlugins					(GData**, gchar**);
 gboolean
 loadAllPlugins				(GData**, GData**, gchar**);
 
+/* Funcion closePlugins
+ * Precondiciones:
+ * Postcondiciones:
+ * Entrada:
+ * Salida:
+ * Proceso:
+ * */
+gboolean
+closeAllPlugins				(GData**, gchar**);
+
 #endif

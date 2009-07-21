@@ -28,6 +28,7 @@
 #define RECEIVEERROR		"Unable to initialize all receivers"
 
 /* Global variables. */
+static GData* dPlugins;
 static GThread* dispatchThread;
 static gpointer dispRetData;
 static GThread* receiveThread;
@@ -44,8 +45,6 @@ static ExtThreadData* etData;
 gboolean
 initBaseSystem				(const gchar* configFile, gchar** error)
 {
-	GData* dPlugins;
-	
 	GData* dConfig;
 	GData* baseConfig;
 	GData* pluginConfig;
@@ -218,6 +217,16 @@ closeBaseSystem				(gchar** error)
 	else
 	{
 		g_debug("Receive module closed properly");
+	}
+	
+	if (!closeAllPlugins(&dPlugins, &funcError))
+	{
+		g_debug("Plugins unloaded with errors");
+		*error = g_strconcat("Load module: ", funcError, "\n", NULL);
+	}
+	else
+	{
+		g_debug("Plugins unloaded properly");
 	}
 	
 	if (*error == NULL)
