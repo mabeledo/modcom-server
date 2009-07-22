@@ -184,8 +184,11 @@ pluginSend							(gpointer dest, gpointer data, gchar** error)
 	gint i;
 	
 	#ifdef G_OS_UNIX
-		/* Seeks for the device ready to send data. */
-		for (i = 0; !g_str_equal(destAddress, devices[i]) && (i < fdLength); i++);
+		/* Seeks for the device ready to send data.
+		 * Previously, comparison was done with g_str_equal, but this
+		 * function seems to crash in ARM.
+		 * */
+		for (i = 0; (g_strcmp0(destAddress, devices[i]) == 0) && (i < fdLength); i++);
 		
 		/* Create a new io channel to read data. */
 		if ((channel = g_io_channel_unix_new(fd[i])) == NULL)
