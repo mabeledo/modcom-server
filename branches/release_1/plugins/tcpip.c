@@ -92,7 +92,7 @@ pluginInit							(gpointer data, gchar** error)
 	{
 		listenPort = (gint)g_strtod((gchar*)g_datalist_get_data(&tcpipConfig, "port"), NULL);
 		
-		if ((listenPort < 1) || (listenPort < 65536))
+		if ((listenPort < 1) || (listenPort > 65536))
 		{
 			listenPort = PORT;
 			g_warning("%s %d", PORTNOTVALID, PORT);
