@@ -220,14 +220,28 @@ pluginSend							(gpointer dest, gpointer data, gchar** error)
 			return (FALSE);
 		}
 		
-		/* Closes channel. 
-		if (g_io_channel_shutdown(channel, TRUE, &chanError) != G_IO_STATUS_NORMAL)
+		/* Closes channel. */
+		if (g_io_channel_shutdown(channel, TRUE, &chanError) == G_IO_STATUS_NORMAL)
+		{
+			/* Workaround to flush data on serial port.
+			 * By unknown reason, g_io_channel_flush()
+			 * breaks processing with a segmentation fault.
+			 * Closing and re-opening flushes channel and maintains
+			 * serial port active.
+			 * */
+			g_io_channel_unref(channel);
+			if ((fd[i] = open(devices[i], O_RDWR | O_NOCTTY | O_NDELAY)) < 0)
+			{
+				*error = g_strconcat(PLUGINNAME, " - ", OPENDEVICEFAILED, NULL);
+				return (FALSE);
+			}
+		}
+		else
 		{
 			*error = g_strconcat(PLUGINNAME, " - ", CHANSHUTDOWNERROR, ": ", chanError->message, NULL);
-			return (FALSE);
+			return (FALSE);              
 		}
-		
-		g_io_channel_unref(channel);*/
+
 	#endif
 	
 	return (TRUE);
@@ -294,7 +308,6 @@ pluginReceive						(gpointer data)
 					/* Reads *lines* from channel and pushes each chunk into the chunk queue. */
 					if ((devStatus = g_io_channel_read_line(channel, &msg->chunk, &msg->chunkLen, NULL, &chanError)) == G_IO_STATUS_NORMAL)
 					{
-						g_warning("chunk: %s", msg->chunk);
 						g_async_queue_push(tData->qMessages, msg);
 					}
 					
@@ -315,15 +328,27 @@ pluginReceive						(gpointer data)
 			
 		}
 		
-		/* Clean opened file descriptor.
-		if (g_io_channel_shutdown(channel, TRUE, &chanError) != G_IO_STATUS_NORMAL)
+		/* Clean opened file descriptor. */
+		if (g_io_channel_shutdown(channel, TRUE, &chanError) == G_IO_STATUS_NORMAL)
+		{
+			/* Workaround to flush data on serial port.
+			 * By unknown reason, g_io_channel_flush()
+			 * breaks processing with a segmentation fault.
+			 * Closing and re-opening flushes channel and maintains
+			 * serial port active.
+			 * */
+			g_io_channel_unref(channel);
+			if ((fd[i] = open(devices[i], O_RDWR | O_NOCTTY | O_NDELAY)) < 0)
+			{
+				error = g_strconcat(PLUGINNAME, " - ", OPENDEVICEFAILED, NULL);
+				return ((gpointer)error);
+			}
+		}
+		else
 		{
 			error = g_strconcat(PLUGINNAME, " - ", CHANSHUTDOWNERROR, ": ", chanError->message, NULL);
-			g_warning("%s", error);
-			return ((gpointer)error);
-		} */
-
-		/*g_io_channel_unref(channel);*/
+			return ((gpointer)error);              
+		}
 	#endif
 
 	/* Clean and exit. */
