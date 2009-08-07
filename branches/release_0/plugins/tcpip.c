@@ -35,6 +35,7 @@
 static gint listenPort = LISTENPORT;
 static gchar* interface = INTERFACE;
 static gchar* address = ADDRESS;
+static GAsyncQueue* queue = g_async_queue_new();
 
 const gchar*
 pluginProto							()
@@ -70,7 +71,7 @@ gboolean
 pluginInit							(gpointer data, gchar** error)
 {
 	GData* tcpipConfig = (GData*)data;
-	
+	g_debug("In init: %p", queue);
 	/* Address search. */
 	
 	/* Winsocket support */
@@ -133,6 +134,8 @@ pluginInit							(gpointer data, gchar** error)
 gboolean
 pluginSend							(gpointer dest, gpointer data, gchar** error)
 {	
+	g_debug("In send: %p", queue);
+
 	/* Better use a string instead a struct to send data over TCP. */
 	gchar* msgStr = g_memdup(data, sizeof(Message));
 	gchar* destAddress = (gchar*)dest;
@@ -190,6 +193,9 @@ pluginSend							(gpointer dest, gpointer data, gchar** error)
 gpointer
 pluginReceive						(gpointer data)
 {
+	g_debug("In receive: %p", queue);
+	
+
 	/* Increases the refence count of the queue by one. */
 	GAsyncQueue* qMessages = g_async_queue_ref((GAsyncQueue*)data);
 	gchar* error;

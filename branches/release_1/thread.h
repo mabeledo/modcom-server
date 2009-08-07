@@ -11,7 +11,6 @@
 typedef struct _ThreadData
 {
 	GAsyncQueue* qMessages;
-	GMutex* mutex;
 	
 	/* This should be used only with g_atomic_int_set() 
 	 * when it's modified in a thread. 

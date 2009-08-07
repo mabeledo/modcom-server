@@ -203,7 +203,7 @@ loadDispatcher					(gpointer data)
 			g_free(msg);
 			
 			// TODO: better error handling
-			if (found == FALSE)
+			if (!found)
 			{
 				//g_atomic_int_set(exitFlag, TRUE);
 				g_warning("%s - %s", MODULENAME, PLUGINNOTFOUND);

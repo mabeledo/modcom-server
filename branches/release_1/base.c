@@ -76,20 +76,20 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 		return (FALSE);
 	}
 	
-	/* Gets per module configuration settings. */
+	/* Gets per module configuration settings and
+	 * Free memory containing configuration patterns already used.
+	 * */
 	baseConfig = g_datalist_get_data(&dConfig, "base");
+	g_datalist_remove_data(&dConfig, "base");
 	pluginConfig = g_datalist_get_data(&dConfig, "plugins");
+	g_datalist_remove_data(&dConfig, "plugins");
 	receiveConfig = g_datalist_get_data(&dConfig, "receive");
+	g_datalist_remove_data(&dConfig, "receive");
 	dispatchConfig = g_datalist_get_data(&dConfig, "dispatch");
+	g_datalist_remove_data(&dConfig, "dispatch");
 	
 	/* Fill base module configure options. */
 	behaviour = (gchar*)g_datalist_get_data(&baseConfig, "behaviour");
-	
-	/* Free memory containing configuration patterns already used. */
-	g_datalist_remove_data(&dConfig, "base");
-	g_datalist_remove_data(&dConfig, "plugins");
-	g_datalist_remove_data(&dConfig, "receive");
-	g_datalist_remove_data(&dConfig, "dispatch");
 	
 	pluginSetConfig = dConfig;
 	
@@ -102,7 +102,6 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 	etData->tData = g_new0(ThreadData, 1);
 	
 	etData->tData->qMessages = g_async_queue_new();
-	etData->tData->mutex = g_mutex_new();
 	exitFlag = FALSE;
 	etData->tData->exitFlag = &exitFlag;
 	

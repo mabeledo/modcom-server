@@ -102,6 +102,7 @@ loadPlugin			(const gchar* fileName, GData** config, gchar** error)
 	if (plugin->module == NULL)
 	{
 		*error = g_strdup(INCORRECTMODULEFORMAT);
+		g_slice_free(Plugin, plugin);
 		return (NULL);
 	}
 	
@@ -134,7 +135,7 @@ loadPlugin			(const gchar* fileName, GData** config, gchar** error)
 	 * The first parameter is a GData filled with the plugin configuration
 	 * options.
 	 * */	
-	if ((plugin->pluginInit((gpointer)config, error)) == FALSE)
+	if (!plugin->pluginInit((gpointer)config, error))
 	{
 		return (NULL);
 	}
