@@ -59,7 +59,7 @@ main				(int argc, char *argv[])
 	gboolean optVerbose = FALSE;
 	gboolean optDaemon = FALSE;
 	gboolean optVersion = FALSE;
-
+	GOptionContext *context;
 	GError* error = NULL;
 	gchar* returnError = "";
 	gchar* defaultConfig = g_strconcat(g_get_current_dir(), "/", MODCOM_CFG, NULL);
@@ -76,8 +76,6 @@ main				(int argc, char *argv[])
 		{ "daemon", 'D', 0, G_OPTION_ARG_NONE, &optDaemon, "Modo Demonio", NULL },
 		{ NULL }
 	};
-	
-	GOptionContext *context;
 	
 	/* Check for GLib dependencies. */
 	if (!GLIB_CHECK_VERSION(2, 12, 0))
