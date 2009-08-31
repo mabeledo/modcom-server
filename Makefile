@@ -5,8 +5,8 @@
 CC=gcc
 # ARM GCC
 #CC=armv4tl-softfloat-linux-gnueabi-gcc
-CFLAGS=-Wall -g -g3 -ggdb `pkg-config --cflags glib-2.0` `pkg-config --cflags gmodule-2.0` `pkg-config --cflags gthread-2.0` -c
-LDFLAGS=-g -g3 -ggdb `pkg-config --libs glib-2.0` `pkg-config --libs gmodule-2.0` `pkg-config --libs gthread-2.0`
+CFLAGS=-Wall -g `pkg-config --cflags glib-2.0` `pkg-config --cflags gmodule-2.0` `pkg-config --cflags gthread-2.0` -c
+LDFLAGS=-g `pkg-config --libs glib-2.0` `pkg-config --libs gmodule-2.0` `pkg-config --libs gthread-2.0`
 SOURCES=base.c receiver.c config.c loader.c dispatcher.c modcom-server.c 
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=modcom-server

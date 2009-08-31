@@ -4,9 +4,9 @@
 # x86 GCC
 CC=gcc
 # ARM GCC
-#CC=armv4tl-softfloat-linux-gnueabi-gcc
-CFLAGS=-Wall -g -g3 -ggdb `pkg-config --cflags glib-2.0` -fPIC -c
-LDFLAGS=-Wall -g -g3 -ggdb `pkg-config --libs glib-2.0` -lc -shared -Wl,-soname,
+# CC=armv4tl-softfloat-linux-gnueabi-gcc
+CFLAGS=-Wall -g `pkg-config --cflags glib-2.0` -fPIC -c
+LDFLAGS=-Wall -g `pkg-config --libs glib-2.0` -shared -lc -Wl,-soname,
 
 # Command format:
 # target: dependencies
@@ -28,7 +28,8 @@ tcpip:
 	$(CC) $(CFLAGS) tcpip.c
 	$(CC) $(LDFLAGS)libtcpip.so.1 -o tcpip.so tcpip.o 
 
+# Linux only
 bluetooth:
-	$(CC) $(CFLAGS) -lbluetooth bluetooth.c
-	$(CC) $(LDFLAGS)libbluetooth.so.1 -lbluetooth -o bluetooth.so bluetooth.o 
+	$(CC) $(CFLAGS) -DLINUX bluetooth.c
+	$(CC) -lbluetooth $(LDFLAGS)libbluetooth.so.1 -DLINUX -o bluetooth.so bluetooth.o 
 	

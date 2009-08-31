@@ -196,11 +196,12 @@ loadDispatcher					(gpointer data)
 					}					
 				}
 			}
-			
+
 			g_free((gpointer)msg->srcProto);
 			g_free((gpointer)msg->srcAddress);
-			g_free(msg->chunk);
-			g_free(msg);
+			g_free((gpointer)msg->chunk);
+			g_free((gpointer)msg);
+			msg = NULL;
 			
 			// TODO: better error handling
 			if (!found)

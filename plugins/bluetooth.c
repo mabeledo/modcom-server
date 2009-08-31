@@ -20,7 +20,7 @@
 
 #endif
 
-#ifdef G_OS_UNIX
+#ifdef LINUX
 	#include <errno.h>
 	#include <unistd.h>
 	#include <sys/socket.h>
@@ -82,8 +82,9 @@ pluginSend							(gpointer dest, gpointer data, gchar** error)
 	
 	GIOChannel* channel;
 	GError* chanError;
+	GTimer* timeElapsed = g_timer_new();
 
-	#ifdef G_OS_UNIX
+	#ifdef LINUX
 		struct sockaddr_rc addr;
 		gint clientSd, addrLen;
 		
@@ -121,6 +122,8 @@ pluginSend							(gpointer dest, gpointer data, gchar** error)
 			*error = g_strconcat(PLUGINNAME, " - ", CHANOPTERROR, ": ", chanError->message, NULL);
 			return (FALSE);
 		}
+		
+		g_timer_start(timeElapsed);
 
 		/* Writes data on channel. */
 		if (g_io_channel_write_chars(channel, msg->chunk, msg->chunkLen, NULL, &chanError) != G_IO_STATUS_NORMAL)
@@ -142,6 +145,10 @@ pluginSend							(gpointer dest, gpointer data, gchar** error)
 			return (FALSE);
 		}
 		
+		g_timer_stop(timeElapsed);
+		g_debug("%s - %d bytes sent in %lf seconds", PLUGINNAME, msg->chunkLen, g_timer_elapsed(timeElapsed, NULL));
+		g_timer_destroy(timeElapsed);
+		
 		g_io_channel_unref(channel);
 	#endif
 	
@@ -158,11 +165,12 @@ pluginReceive						(gpointer data)
 	GIOStatus devStatus;
 	GError* chanError;
 	gchar *error, *buffer;
+	GTimer* timeElapsed = g_timer_new();
 	
 	tData = data;
 	tData->qMessages = g_async_queue_ref(tData->qMessages);
 	
-	#ifdef G_OS_UNIX
+	#ifdef LINUX
 		gint serverSd, clientSd, addrLen;
 		struct sockaddr_rc addr;
 		
@@ -233,6 +241,8 @@ pluginReceive						(gpointer data)
 				return ((gpointer)error);
 			}
 			
+			g_timer_start(timeElapsed);
+			
 			/* Reads data from channel and pushes each chunk into the chunk queue. */
 			if ((devStatus = g_io_channel_read_to_end(channel, &msg->chunk, &msg->chunkLen, &chanError)) == G_IO_STATUS_NORMAL)
 			{
@@ -250,6 +260,10 @@ pluginReceive						(gpointer data)
 				error = g_strconcat(PLUGINNAME, " - ", CHANSHUTDOWNERROR, ": ", chanError->message, NULL);
 				return ((gpointer)error);
 			}
+			
+			g_timer_stop(timeElapsed);
+			g_debug("%s - %d bytes read in %lf seconds", PLUGINNAME, msg->chunkLen, g_timer_elapsed(timeElapsed, NULL));
+			g_timer_reset(timeElapsed);
 
 			g_io_channel_unref(channel);
 		}
