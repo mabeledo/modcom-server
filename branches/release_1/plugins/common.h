@@ -7,6 +7,9 @@
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
 
+/* Maximum size of each chunk, in bytes. */
+#define MAXCHUNKLEN					30000
+
 #include <glib.h>
 #include "../msg.h"
 #include "../thread.h"

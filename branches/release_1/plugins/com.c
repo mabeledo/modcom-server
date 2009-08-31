@@ -13,21 +13,29 @@
 #define PLUGINDESC			"Serial port plugin"
 #define PLUGINVERSION		"1.0"
 
+#define BAUDRATE			B115200
+#define COM_EOF				"^EOF"
+
 #include "common.h"
 #include "com.h"
+#include <glib/gprintf.h>
+#include <string.h>
 
 #ifdef G_OS_WIN32
 
 #endif
 
 #ifdef G_OS_UNIX
+	#define _GNU_SOURCE
 	#include <sys/select.h>
 	#include <sys/time.h>
 	#include <strings.h>
 	#include <unistd.h>
-	#include <fcntl.h>
 	#include <termios.h>
 	#include <stdio.h>
+	#include <sys/types.h>
+	#include <sys/stat.h>
+	#include <fcntl.h>
 #endif
 
 /* Error messages. */
@@ -107,7 +115,7 @@ pluginInit							(gpointer data, gchar** error)
 			/* Open serial port only for reading and not as controlling
 			 * tty, in order to avoid get killed with CTRL+C.
 			 * */
-			if ((fd[i] = open(devices[i], O_RDWR | O_NOCTTY | O_NDELAY)) < 0)
+			if ((fd[i] = open(devices[i], O_RDWR | O_NOCTTY)) < 0)
 			{
 				*error = g_strconcat(PLUGINNAME, " - ", OPENDEVICEFAILED, NULL);
 				return (FALSE);
@@ -128,23 +136,27 @@ pluginInit							(gpointer data, gchar** error)
 			 * CLOCAL (local reception, no modem control), CREAD
 			 * (enable receiving characters).
 			 * */
-			newCfg[i].c_cflag = B115200 | CS8 | CLOCAL | CREAD;
+			newCfg[i].c_cflag = BAUDRATE | CS8 | CLOCAL | CREAD | CRTSCTS;
 			
-			/* Set IGNPAR (ignore bits with parity errors) and ICRNL (map CR,
-			 * Windows end of line, to NL, UNIX end of line).
+			/* Set IGNPAR (ignore bits with parity errors),
+			 * non canonical processing.
 			 * */
 			newCfg[i].c_iflag = IGNPAR | ICRNL;
 			newCfg[i].c_oflag = 0;
-			newCfg[i].c_lflag = ICANON;
+			//newCfg[i].c_oflag = ICANON;
+			newCfg[i].c_lflag = 0;
 			
-			/* Initialize all control characters. */
+			/* Clean inter-character timer. Dont block.
+			 * */
+			newCfg[i].c_cc[VTIME] = 0;
+			newCfg[i].c_cc[VMIN] = 0;
+			
 			newCfg[i].c_cc[VINTR] = 0;
 			newCfg[i].c_cc[VQUIT] = 0;
 			newCfg[i].c_cc[VERASE] = 0;
 			newCfg[i].c_cc[VKILL] = 0;
 			newCfg[i].c_cc[VEOF] = 4;
 			newCfg[i].c_cc[VTIME] = 0;
-			newCfg[i].c_cc[VMIN] = 1;
 			newCfg[i].c_cc[VSWTC] = 0;
 			newCfg[i].c_cc[VSTART] = 0;
 			newCfg[i].c_cc[VSTOP] = 0;
@@ -156,8 +168,9 @@ pluginInit							(gpointer data, gchar** error)
 			newCfg[i].c_cc[VLNEXT] = 0;
 			newCfg[i].c_cc[VEOL2] = 0;
 			
+			
 			/* Clean the modem line and activate the settings. */
-			tcflush(fd[i], TCIFLUSH);
+			tcflush(fd[i], TCIOFLUSH);
 			tcsetattr(fd[i], TCSANOW, &newCfg[i]);
 			
 			FD_SET(fd[i], set);
@@ -182,11 +195,12 @@ pluginSend							(gpointer dest, gpointer data, gchar** error)
 	GIOChannel* channel;
 	GError* chanError;
 	gint i;
+	GTimer* timeElapsed = g_timer_new();
 	
 	#ifdef G_OS_UNIX
 		/* Seeks for the device ready to send data.
 		 * Previously, comparison was done with g_str_equal, but this
-		 * function seems to crash in ARM.
+		 * function seems to crash in ARM.	
 		 * */
 		for (i = 0; (g_strcmp0(destAddress, devices[i]) == 0) && (i < fdLength); i++);
 		
@@ -205,7 +219,12 @@ pluginSend							(gpointer dest, gpointer data, gchar** error)
 			*error = g_strconcat(PLUGINNAME, " - ", CHANOPTERROR, ": ", chanError->message, NULL);
 			return (FALSE);
 		}
-						
+		
+		g_timer_start(timeElapsed);
+		
+		// ADDED
+		tcflush(fd[i], TCIOFLUSH);
+		
 		/* Writes data on channel. */
 		if (g_io_channel_write_chars(channel, msg->chunk, msg->chunkLen, NULL, &chanError) != G_IO_STATUS_NORMAL)
 		{
@@ -213,12 +232,19 @@ pluginSend							(gpointer dest, gpointer data, gchar** error)
 			return (FALSE);
 		}
 		
-		/* Flushes channel. */
-		if (g_io_channel_flush(channel, &chanError) != G_IO_STATUS_NORMAL)
+		/* Flushes channel.
+		 * GLib function is broken in ARM.
+		 * */
+		/*if (g_io_channel_flush(channel, &chanError) != G_IO_STATUS_NORMAL)
 		{
 			*error = g_strconcat(PLUGINNAME, " - ", FLUSHERROR, ": ", chanError->message, NULL);
 			return (FALSE);
-		}
+		}*/
+		/*if (tcflush(fd[i], TCIOFLUSH) != 0)
+		{
+			*error = g_strconcat(PLUGINNAME, " - ", FLUSHERROR, ": ", chanError->message, NULL);
+			return (FALSE);
+		}*/
 		
 		/* Closes channel. */
 		if (g_io_channel_shutdown(channel, TRUE, &chanError) == G_IO_STATUS_NORMAL)
@@ -241,6 +267,10 @@ pluginSend							(gpointer dest, gpointer data, gchar** error)
 			*error = g_strconcat(PLUGINNAME, " - ", CHANSHUTDOWNERROR, ": ", chanError->message, NULL);
 			return (FALSE);              
 		}
+		
+		g_timer_stop(timeElapsed);
+		g_debug("%s - %d bytes sent in %lf seconds", PLUGINNAME, msg->chunkLen, g_timer_elapsed(timeElapsed, NULL));
+		g_timer_destroy(timeElapsed);
 
 	#endif
 	
@@ -257,7 +287,12 @@ pluginReceive						(gpointer data)
 	GIOStatus devStatus;
 	GError* chanError;
 	gchar* error;
+	GTimer* timeElapsed = g_timer_new();
 	
+	gsize dataLength, bufferLength;
+	gchar* buffer;
+	GString* temp;
+
 	tData = data;
 	tData->qMessages = g_async_queue_ref(tData->qMessages);
 	
@@ -269,6 +304,7 @@ pluginReceive						(gpointer data)
 		/* Main loop. */
 		while (!g_atomic_int_get(tData->exitFlag))
 		{
+			
 			/* Waits for file descriptors ready to be read.
 			 * There is no time limit, nor other sets to be watched
 			 * but a read set.
@@ -285,12 +321,11 @@ pluginReceive						(gpointer data)
 					msg->srcProto = g_strdup(PLUGINPROTO);
 					msg->srcAddress = g_strdup(devices[i]);
 					msg->chunkLen = 0;
-					
+
 					/* Create a new io channel to read data. */
 					if ((channel = g_io_channel_unix_new(fd[i])) == NULL)
 					{
 						error = g_strconcat(PLUGINNAME, " - ", CHANOPENERROR, NULL);
-						g_warning("%s", error);
 						return ((gpointer)error);
 					}
 					
@@ -301,53 +336,89 @@ pluginReceive						(gpointer data)
 					if (g_io_channel_set_encoding(channel, NULL, &chanError) != G_IO_STATUS_NORMAL)
 					{
 						error = g_strconcat(PLUGINNAME, " - ", CHANCODIFERROR, NULL);
-						g_warning("%s", error);
 						return ((gpointer)error);
 					}
 
-					/* Reads *lines* from channel and pushes each chunk into the chunk queue. */
-					if ((devStatus = g_io_channel_read_line(channel, &msg->chunk, &msg->chunkLen, NULL, &chanError)) == G_IO_STATUS_NORMAL)
+					g_timer_start(timeElapsed);
+					
+					/* Read the data length. */
+					if (g_io_channel_read_line(channel, &buffer, &dataLength, NULL, &chanError) != G_IO_STATUS_NORMAL)
 					{
-						g_async_queue_push(tData->qMessages, msg);
+						error = g_strconcat(PLUGINNAME, " - ", READERROR, NULL);
+						return ((gpointer)error);
 					}
 					
-					if (chanError != NULL)
+					//ADDED
+					tcflush(fd[i], TCIOFLUSH);
+					dataLength = g_strtod(buffer, NULL);
+					
+					if ((dataLength > 0) && (dataLength < MAXCHUNKLEN))
 					{
-						g_warning("%s - %s: %s", PLUGINNAME, READERROR, chanError->message);
-						g_clear_error(&chanError);
+						temp = g_string_new("");
+						while (msg->chunkLen < dataLength)
+						{
+							if (g_io_channel_read_to_end(channel, &buffer, &bufferLength, &chanError) != G_IO_STATUS_NORMAL)
+							{
+								error = g_strconcat(PLUGINNAME, " - ", READERROR, NULL);
+								return ((gpointer)error);
+							}
+							
+							temp = g_string_append(temp, buffer);
+							msg->chunkLen += bufferLength;
+							g_free((gpointer)buffer);
+						}
+						
+						/* Truncate to the declared size. */
+						if (msg->chunkLen != dataLength)
+						{
+							temp = g_string_truncate(temp, dataLength);
+							msg->chunkLen = dataLength;
+						}
+
+						msg->chunk = g_string_free(temp, FALSE);
+						g_async_queue_push(tData->qMessages, msg);
+
+						if (chanError != NULL)
+						{
+							g_warning("%s - %s: %s", PLUGINNAME, READERROR, chanError->message);
+							g_clear_error(&chanError);
+						}
+						
+						g_timer_stop(timeElapsed);
+						g_debug("%s - %d bytes read in %lf seconds", PLUGINNAME, msg->chunkLen, g_timer_elapsed(timeElapsed, NULL));
+						g_timer_reset(timeElapsed);
 					}
 				}
 			}
-
+			
+			/* Clean opened file descriptor. */
+			//if (g_io_channel_shutdown(channel, TRUE, &chanError) == G_IO_STATUS_NORMAL)
+			//{
+				///* Workaround to flush data on serial port.
+				 //* By unknown reason, g_io_channel_flush()
+				 //* breaks processing with a segmentation fault.
+				 //* Closing and re-opening flushes channel and maintains
+				 //* serial port active.
+				 //* */
+				//g_io_channel_unref(channel);
+				//if ((fd[i] = open(devices[i], O_RDWR | O_NOCTTY | O_NDELAY)) < 0)
+				//{
+					//error = g_strconcat(PLUGINNAME, " - ", OPENDEVICEFAILED, NULL);
+					//return ((gpointer)error);
+				//}
+			//}
+			//else
+			//{
+				//error = g_strconcat(PLUGINNAME, " - ", CHANSHUTDOWNERROR, ": ", chanError->message, NULL);
+				//return ((gpointer)error);              
+			//}
+			
 			if (readyFd < 0)
 			{
 				error = g_strconcat(PLUGINNAME, " - ", NODEVICEAVAILABLE, NULL);
-				g_warning("%s", error);
 				return ((gpointer)error);
 			}
 			
-		}
-		
-		/* Clean opened file descriptor. */
-		if (g_io_channel_shutdown(channel, TRUE, &chanError) == G_IO_STATUS_NORMAL)
-		{
-			/* Workaround to flush data on serial port.
-			 * By unknown reason, g_io_channel_flush()
-			 * breaks processing with a segmentation fault.
-			 * Closing and re-opening flushes channel and maintains
-			 * serial port active.
-			 * */
-			g_io_channel_unref(channel);
-			if ((fd[i] = open(devices[i], O_RDWR | O_NOCTTY | O_NDELAY)) < 0)
-			{
-				error = g_strconcat(PLUGINNAME, " - ", OPENDEVICEFAILED, NULL);
-				return ((gpointer)error);
-			}
-		}
-		else
-		{
-			error = g_strconcat(PLUGINNAME, " - ", CHANSHUTDOWNERROR, ": ", chanError->message, NULL);
-			return ((gpointer)error);              
 		}
 	#endif
 
@@ -373,6 +444,8 @@ pluginExit							(gchar** error)
 	
 	/* Free memory. */
 	g_strfreev(devices);
+	g_free(newCfg);
+	g_free(oldCfg);
 	
 	return (TRUE);
 }
