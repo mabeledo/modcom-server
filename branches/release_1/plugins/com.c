@@ -52,6 +52,9 @@
 #define FLUSHERROR			"Error flushing data"
 
 /* Global variables. */
+
+GMutex * mutex;
+
 #ifdef G_OS_UNIX
 	/* Previous serial port configuration. */
 	static struct termios* oldCfg;
@@ -78,6 +81,8 @@ pluginInit							(gpointer data, gchar** error)
 {
 	GData* comConfig = (GData*)data;
 	gint i;
+	
+	mutex = g_mutex_new();
 	
 	/* Load configuration parameters */
 	if (g_datalist_get_data(&comConfig, "devices") != NULL)
@@ -115,7 +120,7 @@ pluginInit							(gpointer data, gchar** error)
 			/* Open serial port only for reading and not as controlling
 			 * tty, in order to avoid get killed with CTRL+C.
 			 * */
-			if ((fd[i] = open(devices[i], O_RDWR | O_NOCTTY)) < 0)
+			if ((fd[i] = open(devices[i], O_RDWR | O_NOCTTY | O_NDELAY)) < 0)
 			{
 				*error = g_strconcat(PLUGINNAME, " - ", OPENDEVICEFAILED, NULL);
 				return (FALSE);
@@ -136,14 +141,14 @@ pluginInit							(gpointer data, gchar** error)
 			 * CLOCAL (local reception, no modem control), CREAD
 			 * (enable receiving characters).
 			 * */
-			newCfg[i].c_cflag = BAUDRATE | CS8 | CLOCAL | CREAD | CRTSCTS;
+			newCfg[i].c_cflag = BAUDRATE | CS8 | CLOCAL | CREAD;
 			
 			/* Set IGNPAR (ignore bits with parity errors),
 			 * non canonical processing.
 			 * */
-			newCfg[i].c_iflag = IGNPAR | ICRNL;
+			newCfg[i].c_iflag = IGNPAR;
 			newCfg[i].c_oflag = 0;
-			//newCfg[i].c_oflag = ICANON;
+			//newCfg[i].c_lflag = ~ICANON;
 			newCfg[i].c_lflag = 0;
 			
 			/* Clean inter-character timer. Dont block.
@@ -151,23 +156,22 @@ pluginInit							(gpointer data, gchar** error)
 			newCfg[i].c_cc[VTIME] = 0;
 			newCfg[i].c_cc[VMIN] = 0;
 			
-			newCfg[i].c_cc[VINTR] = 0;
-			newCfg[i].c_cc[VQUIT] = 0;
-			newCfg[i].c_cc[VERASE] = 0;
-			newCfg[i].c_cc[VKILL] = 0;
-			newCfg[i].c_cc[VEOF] = 4;
-			newCfg[i].c_cc[VTIME] = 0;
-			newCfg[i].c_cc[VSWTC] = 0;
-			newCfg[i].c_cc[VSTART] = 0;
-			newCfg[i].c_cc[VSTOP] = 0;
-			newCfg[i].c_cc[VSUSP] = 0;
-			newCfg[i].c_cc[VEOL] = 0;
-			newCfg[i].c_cc[VREPRINT] = 0;
-			newCfg[i].c_cc[VDISCARD] = 0;
-			newCfg[i].c_cc[VWERASE] = 0;
-			newCfg[i].c_cc[VLNEXT] = 0;
-			newCfg[i].c_cc[VEOL2] = 0;
-			
+			//newCfg[i].c_cc[VINTR] = 0;
+			//newCfg[i].c_cc[VQUIT] = 0;
+			//newCfg[i].c_cc[VERASE] = 0;
+			//newCfg[i].c_cc[VKILL] = 0;
+			//newCfg[i].c_cc[VEOF] = 4;
+			//newCfg[i].c_cc[VTIME] = 0;
+			//newCfg[i].c_cc[VSWTC] = 0;
+			//newCfg[i].c_cc[VSTART] = 0;
+			//newCfg[i].c_cc[VSTOP] = 0;
+			//newCfg[i].c_cc[VSUSP] = 0;
+			//newCfg[i].c_cc[VEOL] = 0;
+			//newCfg[i].c_cc[VREPRINT] = 0;
+			//newCfg[i].c_cc[VDISCARD] = 0;
+			//newCfg[i].c_cc[VWERASE] = 0;
+			//newCfg[i].c_cc[VLNEXT] = 0;
+			//newCfg[i].c_cc[VEOL2] = 0;
 			
 			/* Clean the modem line and activate the settings. */
 			tcflush(fd[i], TCIOFLUSH);
@@ -223,7 +227,7 @@ pluginSend							(gpointer dest, gpointer data, gchar** error)
 		g_timer_start(timeElapsed);
 		
 		// ADDED
-		tcflush(fd[i], TCIOFLUSH);
+		tcflush(fd[i], TCOFLUSH);
 		
 		/* Writes data on channel. */
 		if (g_io_channel_write_chars(channel, msg->chunk, msg->chunkLen, NULL, &chanError) != G_IO_STATUS_NORMAL)
@@ -231,6 +235,8 @@ pluginSend							(gpointer dest, gpointer data, gchar** error)
 			*error = g_strconcat(PLUGINNAME, " - ", SENDERROR, ": ", chanError->message, NULL);
 			return (FALSE);
 		}
+		
+		g_usleep(1000);
 		
 		/* Flushes channel.
 		 * GLib function is broken in ARM.
@@ -249,6 +255,8 @@ pluginSend							(gpointer dest, gpointer data, gchar** error)
 		/* Closes channel. */
 		if (g_io_channel_shutdown(channel, TRUE, &chanError) == G_IO_STATUS_NORMAL)
 		{
+			g_mutex_lock(mutex);
+			
 			/* Workaround to flush data on serial port.
 			 * By unknown reason, g_io_channel_flush()
 			 * breaks processing with a segmentation fault.
@@ -261,6 +269,8 @@ pluginSend							(gpointer dest, gpointer data, gchar** error)
 				*error = g_strconcat(PLUGINNAME, " - ", OPENDEVICEFAILED, NULL);
 				return (FALSE);
 			}
+			
+			g_mutex_unlock(mutex);
 		}
 		else
 		{
@@ -338,7 +348,7 @@ pluginReceive						(gpointer data)
 						error = g_strconcat(PLUGINNAME, " - ", CHANCODIFERROR, NULL);
 						return ((gpointer)error);
 					}
-
+					
 					g_timer_start(timeElapsed);
 					
 					/* Read the data length. */
@@ -347,14 +357,15 @@ pluginReceive						(gpointer data)
 						error = g_strconcat(PLUGINNAME, " - ", READERROR, NULL);
 						return ((gpointer)error);
 					}
-					
-					//ADDED
-					tcflush(fd[i], TCIOFLUSH);
+
+					tcflush(fd[i], TCIFLUSH);
 					dataLength = g_strtod(buffer, NULL);
+					g_free(buffer);
 					
 					if ((dataLength > 0) && (dataLength < MAXCHUNKLEN))
 					{
 						temp = g_string_new("");
+						
 						while (msg->chunkLen < dataLength)
 						{
 							if (g_io_channel_read_to_end(channel, &buffer, &bufferLength, &chanError) != G_IO_STATUS_NORMAL)
@@ -365,7 +376,7 @@ pluginReceive						(gpointer data)
 							
 							temp = g_string_append(temp, buffer);
 							msg->chunkLen += bufferLength;
-							g_free((gpointer)buffer);
+							g_free(buffer);
 						}
 						
 						/* Truncate to the declared size. */
@@ -388,30 +399,37 @@ pluginReceive						(gpointer data)
 						g_debug("%s - %d bytes read in %lf seconds", PLUGINNAME, msg->chunkLen, g_timer_elapsed(timeElapsed, NULL));
 						g_timer_reset(timeElapsed);
 					}
+					
+					tcflush(fd[i], TCIFLUSH);
+					
+					/* Clean opened file descriptor. */
+					if (g_io_channel_shutdown(channel, TRUE, &chanError) == G_IO_STATUS_NORMAL)
+					{
+						g_mutex_lock(mutex);
+						
+						/* Workaround to flush data on serial port.
+						 * By unknown reason, g_io_channel_flush()
+						 * breaks processing with a segmentation fault.
+						 * Closing and re-opening flushes channel and maintains
+						 * serial port active.
+						 * */
+						g_io_channel_unref(channel);
+						
+						if ((fd[i] = open(devices[i], O_RDWR | O_NOCTTY | O_NDELAY)) < 0)
+						{
+							error = g_strconcat(PLUGINNAME, " - ", OPENDEVICEFAILED, NULL);
+							return ((gpointer)error);
+						}
+						
+						g_mutex_unlock(mutex);
+					}
+					else
+					{
+						error = g_strconcat(PLUGINNAME, " - ", CHANSHUTDOWNERROR, ": ", chanError->message, NULL);
+						return ((gpointer)error);              
+					}				
 				}
 			}
-			
-			/* Clean opened file descriptor. */
-			//if (g_io_channel_shutdown(channel, TRUE, &chanError) == G_IO_STATUS_NORMAL)
-			//{
-				///* Workaround to flush data on serial port.
-				 //* By unknown reason, g_io_channel_flush()
-				 //* breaks processing with a segmentation fault.
-				 //* Closing and re-opening flushes channel and maintains
-				 //* serial port active.
-				 //* */
-				//g_io_channel_unref(channel);
-				//if ((fd[i] = open(devices[i], O_RDWR | O_NOCTTY | O_NDELAY)) < 0)
-				//{
-					//error = g_strconcat(PLUGINNAME, " - ", OPENDEVICEFAILED, NULL);
-					//return ((gpointer)error);
-				//}
-			//}
-			//else
-			//{
-				//error = g_strconcat(PLUGINNAME, " - ", CHANSHUTDOWNERROR, ": ", chanError->message, NULL);
-				//return ((gpointer)error);              
-			//}
 			
 			if (readyFd < 0)
 			{
