@@ -8,14 +8,20 @@
  ********************************************************************/
 
 #include <glib.h>
+#include <glib/gprintf.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 
 #include "base.h"
 
 #define MODCOM_SERVER_VERSION	"1.0"
 #define MODCOM_CFG				"modcom.cfg"
+#define MODCOM_STATS			"modcom-stats.dat"
+
+static gboolean statisticInfo = FALSE;
 
 /* Funcion endProcess
  * Precondiciones:
@@ -28,6 +34,29 @@ static void
 endProcess			(gint sig)
 {
 	gchar* errorMsg;
+	
+	#ifdef G_OS_UNIX
+		pid_t pid;
+		gchar * procFile, * contents;
+	
+		if (statisticInfo)
+		{
+			pid = getpid();
+			g_sprintf(procFile, "/proc/%d/status", pid);
+			
+			if ((g_file_get_contents(procFile, &contents, NULL, NULL )) &&
+				(g_file_set_contents(MODCOM_STATS, contents, -1, NULL)))
+			{
+				g_free(contents);
+				g_debug("Statistic data saved");
+
+			}
+			else
+			{
+				g_warning("Statistic data not saved");
+			}
+		}
+	#endif
 	
 	if (!closeBaseSystem(&errorMsg))
 	{
@@ -59,6 +88,7 @@ main				(int argc, char *argv[])
 	gboolean optVerbose = FALSE;
 	gboolean optDaemon = FALSE;
 	gboolean optVersion = FALSE;
+	gboolean optStats = FALSE;
 	GOptionContext *context;
 	GError* error = NULL;
 	gchar* returnError = "";
@@ -74,6 +104,10 @@ main				(int argc, char *argv[])
 		{ "verbose", 'V', 0, G_OPTION_ARG_NONE, &optVerbose, "Salida detallada", NULL },
 		{ "version", 'v', 0, G_OPTION_ARG_NONE, &optVersion, "Version", NULL },
 		{ "daemon", 'D', 0, G_OPTION_ARG_NONE, &optDaemon, "Modo Demonio", NULL },
+		
+	#ifdef G_OS_UNIX	
+		{ "stats", 's', 0, G_OPTION_ARG_NONE, &optStats, "Recoge estadisticas en un archivo al salir (solo en GNU/Linux)", NULL },
+	#endif
 		{ NULL }
 	};
 	
@@ -97,6 +131,10 @@ main				(int argc, char *argv[])
 		g_print("Opcion desconocida.\nUtiliza --help para ver la ayuda\n");
 		return(-2);
 	}
+	
+	#ifdef G_OS_UNIX
+		statisticInfo = optStats;
+	#endif
 	
 	if (optVersion)
 	{
