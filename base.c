@@ -114,7 +114,7 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 	{
 		return (FALSE);
 	}
-
+	
 	/* Dispatcher manages the message dispatching process.
 	 * Receiveer creates execution threads needed for asynchronous
 	 * message reception.
@@ -127,7 +127,7 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 	
 	g_datalist_clear(&baseConfig);
 	g_datalist_clear(&dConfig);
-	
+
 	if ((dispatchThread = g_thread_create((GThreadFunc)&loadDispatcher,
 										  (gpointer)etData, TRUE, &threadError)) == NULL)
 	{
@@ -139,7 +139,7 @@ initBaseSystem				(const gchar* configFile, gchar** error)
 		g_error_free(threadError);
 		return (FALSE);
 	}
-	
+
 	if ((receiveThread = g_thread_create((GThreadFunc)&loadAllReceivers,
 										  (gpointer)etData, TRUE, &threadError)) == NULL)
 	{

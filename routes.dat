@@ -1,5 +1,26 @@
 # Routing table file.
 # Format: [Message protocol] [Message source pattern] [Real destination protocol] [Real destination address]
 
-COM /dev/ttyS0 TCPIP 192.168.2.6
-# TCPIP 127.* TCPIP 192.168.2.6
+# PROD: TCPIP from Enoch to any destination (bluez on laptop)
+# TCPIP 192.168.2.4 COM /dev/ttyAM0
+# TCPIP 192.168.2.4 BLUETOOTH 00:1A:6B:C5:21:42
+
+# PROD: Bluetooth from laptop to any destination
+# BLUETOOTH 00:1A:6B:C5:21:42 COM /dev/ttyAM0
+# BLUETOOTH 00:1A:6B:C5:21:42 TCPIP 192.168.2.4
+
+# PROD: Serial from Enoch to any destination
+# COM /dev/ttyAM0 TCPIP 192.168.2.4
+# COM /dev/ttyAM0 BLUETOOTH 00:1A:6B:C5:21:42
+
+# DEV: TCPIP from Enoch to any destination (bluez on enoch)
+TCPIP 192.168.2.4 COM /dev/ttyS0
+TCPIP 192.168.2.4 BLUETOOTH 00:10:60:AA:6D:D4
+
+# DEV: Bluetooth from laptop to any destination
+BLUETOOTH 00:10:60:AA:6D:D4 COM /dev/ttyS0
+BLUETOOTH 00:10:60:AA:6D:D4 TCPIP 192.168.2.4
+
+# DEV: Serial from Enoch to any destination
+COM /dev/ttyS0 TCPIP 192.168.2.4
+COM /dev/ttyS0 BLUETOOTH 00:10:60:AA:6D:D4

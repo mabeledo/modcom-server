@@ -4,7 +4,7 @@
 # x86 GCC
 CC=gcc
 # ARM GCC
-# CC=armv4tl-softfloat-linux-gnueabi-gcc
+#CC=armv4tl-softfloat-linux-gnueabi-gcc
 CFLAGS=-Wall -g `pkg-config --cflags glib-2.0` -fPIC -c
 LDFLAGS=-Wall -g `pkg-config --libs glib-2.0` -shared -lc -Wl,-soname,
 
