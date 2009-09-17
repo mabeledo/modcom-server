@@ -88,7 +88,6 @@ initDispatcher					(GData** dispatchConfig, gchar** error)
 	}
 
 	routingTableLength = 0;
-	routingTable = g_malloc(sizeof(RoutingEntry**));
 
 	/* Read the routing file and create a routing table. */
 	while (g_io_channel_read_line(routing, &buffer, NULL, NULL, &channelError) == G_IO_STATUS_NORMAL)
@@ -112,8 +111,9 @@ initDispatcher					(GData** dispatchConfig, gchar** error)
 					entry->destProto = g_strdup(bufferEntry[2]);				
 					entry->destAddress = g_strdup(bufferDest[i]);
 
-					routingTable[routingTableLength] = entry;
 					routingTableLength++;
+					routingTable = g_realloc(routingTable, routingTableLength * sizeof(RoutingEntry*));
+					routingTable[routingTableLength - 1] = entry;
 				}					
 				
 				g_strfreev(bufferEntry);
