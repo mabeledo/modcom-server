@@ -34,7 +34,7 @@ static void
 endProcess			(gint sig)
 {
 	gchar* errorMsg;
-	
+
 	#ifdef G_OS_UNIX
 		pid_t pid;
 		gchar * procFile, * contents;
