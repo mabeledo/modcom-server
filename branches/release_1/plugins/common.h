@@ -8,7 +8,7 @@
  ********************************************************************/
 
 /* Maximum size of each chunk, in bytes. */
-#define MAXCHUNKLEN					30000
+#define MAXCHUNKLEN					8388608
 
 #include <glib.h>
 #include "../msg.h"
