@@ -7,9 +7,6 @@
  *
  *  Autor: Manuel Angel Abeledo Garcia
  ********************************************************************/
-
-/* Chunk size in bytes. */
-#define CHUNKLEN		4092
  
 typedef struct _Message
 {

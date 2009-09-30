@@ -4,7 +4,7 @@
 # x86 GCC
 CC=gcc
 # ARM GCC
-# CC=armv4tl-softfloat-linux-gnueabi-gcc
+#CC=armv4tl-softfloat-linux-gnueabi-gcc
 CFLAGS=-Wall -g `pkg-config --cflags glib-2.0` `pkg-config --cflags gmodule-2.0` `pkg-config --cflags gthread-2.0` -c
 LDFLAGS=-g `pkg-config --libs glib-2.0` `pkg-config --libs gmodule-2.0` `pkg-config --libs gthread-2.0`
 SOURCES=base.c receiver.c config.c loader.c dispatcher.c modcom-server.c 

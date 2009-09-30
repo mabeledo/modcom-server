@@ -143,7 +143,7 @@ pluginSend							(gpointer dest, gpointer data, gchar** error)
 		chanError = NULL;
 		
 		/* Set a NULL encoding to read raw data. */
-		if (g_io_channel_set_encoding(channel, NULL, &chanError) != G_IO_STATUS_NORMAL)
+		if (g_io_channel_set_encoding(channel, NULL, &chanError) == G_IO_STATUS_ERROR)
 		{
 			*error = g_strconcat(PLUGINNAME, " - ", CHANOPTERROR, ": ", chanError->message, NULL);
 			return (FALSE);
@@ -152,20 +152,20 @@ pluginSend							(gpointer dest, gpointer data, gchar** error)
 		g_timer_start(timeElapsed);
 
 		/* Writes data on channel. */
-		if (g_io_channel_write_chars(channel, msg->chunk, msg->chunkLen, NULL, &chanError) != G_IO_STATUS_NORMAL)
+		if (g_io_channel_write_chars(channel, msg->chunk, msg->chunkLen, NULL, &chanError) == G_IO_STATUS_ERROR)
 		{
 			*error = g_strconcat(PLUGINNAME, " - ", SENDERROR, ": ", chanError->message, NULL);
 			return (FALSE);
 		}
 
 		/* Flushes channel. */
-		if (g_io_channel_flush(channel, &chanError) != G_IO_STATUS_NORMAL)
+		if (g_io_channel_flush(channel, &chanError) == G_IO_STATUS_ERROR)
 		{
 			*error = g_strconcat(PLUGINNAME, " - ", FLUSHERROR, ": ", chanError->message, NULL);
 			return (FALSE);
 		}
 
-		if (g_io_channel_shutdown(channel, TRUE, &chanError) != G_IO_STATUS_NORMAL)
+		if (g_io_channel_shutdown(channel, TRUE, &chanError) == G_IO_STATUS_ERROR)
 		{
 			*error = g_strconcat(PLUGINNAME, " - ", CHANSHUTDOWNERROR, ": ", chanError->message, NULL);
 			return (FALSE);
@@ -268,7 +268,7 @@ pluginReceive						(gpointer data)
 			chanError = NULL;
 			
 			/* Set a NULL encoding to read raw data. */
-			if (g_io_channel_set_encoding(channel, NULL, &chanError) != G_IO_STATUS_NORMAL)
+			if (g_io_channel_set_encoding(channel, NULL, &chanError) == G_IO_STATUS_ERROR)
 			{
 				error = g_strconcat(PLUGINNAME, " - ", CHANOPTERROR, ": ", chanError->message, NULL);
 				g_error_free(chanError);
@@ -289,7 +289,7 @@ pluginReceive						(gpointer data)
 				g_clear_error(&chanError);
 			}
 			
-			if (g_io_channel_shutdown(channel, TRUE, &chanError) != G_IO_STATUS_NORMAL)
+			if (g_io_channel_shutdown(channel, TRUE, &chanError) == G_IO_STATUS_ERROR)
 			{
 				error = g_strconcat(PLUGINNAME, " - ", CHANSHUTDOWNERROR, ": ", chanError->message, NULL);
 				return ((gpointer)error);

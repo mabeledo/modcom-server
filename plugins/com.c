@@ -120,7 +120,7 @@ pluginInit							(gpointer data, gchar** error)
 			/* Open serial port only for reading and not as controlling
 			 * tty, in order to avoid get killed with CTRL+C.
 			 * */
-			if ((fd[i] = open(devices[i], O_RDWR | O_NOCTTY | O_NDELAY)) < 0)
+			if ((fd[i] = open(devices[i], O_RDWR | O_NOCTTY | O_SYNC)) < 0)
 			{
 				*error = g_strconcat(PLUGINNAME, " - ", OPENDEVICEFAILED, NULL);
 				return (FALSE);
@@ -218,7 +218,7 @@ pluginSend							(gpointer dest, gpointer data, gchar** error)
 		chanError = NULL;
 		
 		/* Set a NULL encoding to read raw data. */
-		if (g_io_channel_set_encoding(channel, NULL, &chanError) != G_IO_STATUS_NORMAL)
+		if (g_io_channel_set_encoding(channel, NULL, &chanError) == G_IO_STATUS_ERROR)
 		{
 			*error = g_strconcat(PLUGINNAME, " - ", CHANOPTERROR, ": ", chanError->message, NULL);
 			return (FALSE);
@@ -230,20 +230,18 @@ pluginSend							(gpointer dest, gpointer data, gchar** error)
 		tcflush(fd[i], TCOFLUSH);
 		
 		/* Writes data on channel. */
-		if (g_io_channel_write_chars(channel, msg->chunk, msg->chunkLen, NULL, &chanError) != G_IO_STATUS_NORMAL)
+		if (g_io_channel_write_chars(channel, msg->chunk, msg->chunkLen, NULL, &chanError) == G_IO_STATUS_ERROR)
 		{
 			*error = g_strconcat(PLUGINNAME, " - ", SENDERROR, ": ", chanError->message, NULL);
 			return (FALSE);
 		}
 		
-		g_usleep(1000);
-		
 		/* Flushes channel.
 		 * GLib function is broken in ARM.
 		 * */
-		/*if (g_io_channel_flush(channel, &chanError) != G_IO_STATUS_NORMAL)
+		/* if (g_io_channel_flush(channel, &chanError) == G_IO_STATUS_ERROR)
 		{
-			*error = g_strconcat(PLUGINNAME, " - ", FLUSHERROR, ": ", chanError->message, NULL);
+			*error = g_strconcat(PLUGINNAME, " - ", FLUSHERROR, NULL);
 			return (FALSE);
 		}*/
 		/*if (tcflush(fd[i], TCIOFLUSH) != 0)
@@ -264,7 +262,7 @@ pluginSend							(gpointer dest, gpointer data, gchar** error)
 			 * serial port active.
 			 * */
 			g_io_channel_unref(channel);
-			if ((fd[i] = open(devices[i], O_RDWR | O_NOCTTY | O_NDELAY)) < 0)
+			if ((fd[i] = open(devices[i], O_RDWR | O_NOCTTY | O_SYNC)) < 0)
 			{
 				*error = g_strconcat(PLUGINNAME, " - ", OPENDEVICEFAILED, NULL);
 				return (FALSE);
@@ -294,7 +292,6 @@ pluginReceive						(gpointer data)
 	Message* msg;
 	
 	GIOChannel* channel;
-	GIOStatus devStatus;
 	GError* chanError;
 	gchar* error;
 	GTimer* timeElapsed = g_timer_new();
@@ -331,6 +328,7 @@ pluginReceive						(gpointer data)
 					msg->srcProto = g_strdup(PLUGINPROTO);
 					msg->srcAddress = g_strdup(devices[i]);
 					msg->chunkLen = 0;
+					
 
 					/* Create a new io channel to read data. */
 					if ((channel = g_io_channel_unix_new(fd[i])) == NULL)
@@ -343,16 +341,16 @@ pluginReceive						(gpointer data)
 					chanError = NULL;
 					
 					/* Set a NULL encoding to read raw data. */
-					if (g_io_channel_set_encoding(channel, NULL, &chanError) != G_IO_STATUS_NORMAL)
+					if (g_io_channel_set_encoding(channel, NULL, &chanError) == G_IO_STATUS_ERROR)
 					{
 						error = g_strconcat(PLUGINNAME, " - ", CHANCODIFERROR, NULL);
 						return ((gpointer)error);
 					}
 					
 					g_timer_start(timeElapsed);
-					
+
 					/* Read the data length. */
-					if (g_io_channel_read_line(channel, &buffer, &dataLength, NULL, &chanError) != G_IO_STATUS_NORMAL)
+					if (g_io_channel_read_line(channel, &buffer, &dataLength, NULL, &chanError) == G_IO_STATUS_ERROR)
 					{
 						error = g_strconcat(PLUGINNAME, " - ", READERROR, NULL);
 						return ((gpointer)error);
@@ -360,19 +358,21 @@ pluginReceive						(gpointer data)
 
 					tcflush(fd[i], TCIFLUSH);
 					dataLength = g_strtod(buffer, NULL);
-					g_free(buffer);
-					
+					g_free(buffer);		
+
 					if ((dataLength > 0) && (dataLength < MAXCHUNKLEN))
 					{
 						temp = g_string_new("");
 						
 						while (msg->chunkLen < dataLength)
 						{
-							if (g_io_channel_read_to_end(channel, &buffer, &bufferLength, &chanError) != G_IO_STATUS_NORMAL)
+							if (g_io_channel_read_to_end(channel, &buffer, &bufferLength, &chanError) == G_IO_STATUS_ERROR)
 							{
 								error = g_strconcat(PLUGINNAME, " - ", READERROR, NULL);
 								return ((gpointer)error);
 							}
+														
+							
 							
 							temp = g_string_append(temp, buffer);
 							msg->chunkLen += bufferLength;
@@ -415,7 +415,7 @@ pluginReceive						(gpointer data)
 						 * */
 						g_io_channel_unref(channel);
 						
-						if ((fd[i] = open(devices[i], O_RDWR | O_NOCTTY | O_NDELAY)) < 0)
+						if ((fd[i] = open(devices[i], O_RDWR | O_NOCTTY | O_SYNC)) < 0)
 						{
 							error = g_strconcat(PLUGINNAME, " - ", OPENDEVICEFAILED, NULL);
 							return ((gpointer)error);
