@@ -1,14 +1,32 @@
-/*******************************************************************
- *  Proyecto: Sistema modular de comunicacion con un robot movil
- *  Subproyecto: Servidor
- *  Archivo: base.c
- * 	Version: 1.0
+/********************************************************************
+ *  Project: modcom-server
+ *  File: base.c
+ *  Version: 1.0b
  *
- *  Application entry point. All operations are initialized and managed
- *  here, so base.c is a interface to the "view" side of the
+ *  Application entry point. All operations are initialized and 
+ *  managed here, so base.c is a interface to the "view" side of the
  *  application.
  * 
- *  Autor: Manuel Angel Abeledo Garcia
+ *  Author: Manuel Angel Abeledo Garcia
+ *
+ ************************ License ***********************************
+ * 
+ *  This file is part of modcom-server.
+ *
+ *  modcom-server is free software: you can redistribute it and/or 
+ *  modify it under the terms of the GNU General Public License as
+ *  published by the Free Software Foundation, either version 2 of
+ *  the License, or (at your option) any later version.
+ *
+ *  modcom-server is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with modcom-server.  If not, see
+ *  <http://www.gnu.org/licenses/>.
+ *
  ********************************************************************/
 
 #include "general.h"
