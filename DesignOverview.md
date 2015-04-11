@@ -1,0 +1,17 @@
+# Design overview #
+
+Here i will show how the application is organized internally ("modularized"). As C is not object-oriented, UML-based design is somewhat crappy. C files are treated as UML objects, with public (exported via header files) and private (marked as "static") variables and functions.
+
+# Use Case diagram #
+![http://modcom-server.googlecode.com/svn/branches/release_1/diagrams/usecasediagram.png](http://modcom-server.googlecode.com/svn/branches/release_1/diagrams/usecasediagram.png)
+
+# Collaboration diagram #
+![http://modcom-server.googlecode.com/svn/branches/release_1/diagrams/collaborationgram.png](http://modcom-server.googlecode.com/svn/branches/release_1/diagrams/collaborationgram.png)
+
+# Class diagram #
+![http://modcom-server.googlecode.com/svn/branches/release_1/diagrams/classdiagram-core.png](http://modcom-server.googlecode.com/svn/branches/release_1/diagrams/classdiagram-core.png)
+
+![http://modcom-server.googlecode.com/svn/branches/release_1/diagrams/classdiagram-plugins.png](http://modcom-server.googlecode.com/svn/branches/release_1/diagrams/classdiagram-plugins.png)
+
+# Sequence diagram #
+![http://modcom-server.googlecode.com/svn/branches/release_1/diagrams/sequencediagram.png](http://modcom-server.googlecode.com/svn/branches/release_1/diagrams/sequencediagram.png)
